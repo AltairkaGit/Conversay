@@ -1,0 +1,163 @@
+package com.leopold.modules.chat.service.impl;
+
+import com.leopold.modules.chat.entity.ChatEntity;
+import com.leopold.modules.chat.entity.key.ChatUserKey;
+import com.leopold.modules.chat.exception.UserAlreadyInTheChatException;
+import com.leopold.modules.chat.exception.UserNotInTheChatException;
+import com.leopold.lib.validator.Validator;
+import com.leopold.lib.validator.impl.MaxLengthValidation;
+import com.leopold.lib.validator.impl.MinLengthValidation;
+import com.leopold.lib.validator.impl.ValidatorImpl;
+import com.leopold.modules.chat.entity.ChatUserEntity;
+import com.leopold.modules.file.entity.FileEntity;
+import com.leopold.modules.user.entity.UserEntity;
+import com.leopold.modules.chat.repos.ChatRepository;
+import com.leopold.modules.chat.repos.ChatUserRepository;
+import com.leopold.modules.user.repos.UserRepository;
+import com.leopold.modules.chat.service.ChatService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+@Service
+public class ChatServiceImpl implements ChatService {
+    private final ChatRepository chatRepository;
+    private final ChatUserRepository chatUserRepository;
+    private final UserRepository userRepository;
+
+    @Autowired
+    public ChatServiceImpl(ChatRepository chatRepository, ChatUserRepository chatUserRepository, UserRepository userRepository) {
+        this.chatRepository = chatRepository;
+        this.chatUserRepository = chatUserRepository;
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public ChatEntity getById(Long chatId) {
+        Optional<ChatEntity> chat = chatRepository.findById(chatId);
+        if (chat.isEmpty()) throw new NoSuchElementException("chat with this id is not present");
+        return chat.get();
+    }
+
+    @Override
+    public ChatEntity create(String name, Collection<UserEntity> users) {
+        ChatEntity chat = new ChatEntity();
+        if (name != null) {
+            validateName(name);
+            chat.setChatName(name);
+        } else {
+            String chatName = users.stream().limit(3)
+                    .map(UserEntity::getUsername)
+                    .collect(Collectors.joining(", ", "", "..."));
+            chat.setChatName(chatName);
+        }
+        chatRepository.saveAndFlush(chat);
+        addUsers(chat, users);
+        return chat;
+    }
+
+    @Override
+    public void delete(ChatEntity chat) {
+        chatRepository.delete(chat);
+    }
+
+    @Override
+    public void deleteById(Long chatId) {
+        chatRepository.deleteByChatId(chatId);
+    }
+
+    @Override
+    public boolean checkUserInChat(ChatEntity chat, UserEntity user) {
+        Optional<ChatUserEntity> chatUser = chatUserRepository.findByChatAndUser(chat, user);
+        return chatUser.isPresent();
+    }
+
+    @Override
+    public boolean checkUserInChat(Long chatId, Long userId) {
+        Optional<ChatEntity> chat = chatRepository.findById(chatId);
+        if (chat.isEmpty()) return false;
+        Optional<UserEntity> user = userRepository.findById(userId);
+        if (user.isEmpty()) return false;
+
+        return checkUserInChat(chat.get(), user.get());
+    }
+
+    @Override
+    public void updatePicture(ChatEntity chat, FileEntity picture) {
+        chat.setChatPicture(picture);
+        chatRepository.saveAndFlush(chat);
+    }
+
+    @Override
+    public void updateChatName(ChatEntity chat, String chatName) {
+        chat.setChatName(chatName);
+        chatRepository.saveAndFlush(chat);
+    }
+
+    @Override
+    public Page<ChatEntity> getUserChats(UserEntity user, Pageable pageable) {
+        return chatUserRepository.findUserChats(user, pageable);
+    }
+
+    @Override
+    public Page<UserEntity> getChatUsers(ChatEntity chat, Pageable pageable) {
+        return chatUserRepository.findChatUsers(chat, pageable);
+    }
+
+    @Override
+    public Stream<UserEntity> getChatUsers(ChatEntity chat) {
+        return chatUserRepository.findChatUsers(chat);
+    }
+
+    @Override
+    public void addUser(ChatEntity chat, UserEntity user) throws Exception {
+        if (!checkUserInChat(chat, user))
+            throw new UserAlreadyInTheChatException(user.getUsername(), chat.getChatId());
+        ChatUserEntity chatUserEntity = new ChatUserEntity(chat, user);
+        chatUserRepository.saveAndFlush(chatUserEntity);
+    }
+
+    @Override
+    public void addUsers(ChatEntity chat, Collection<UserEntity> users) {
+        Set<ChatUserEntity> chatUserEntities = users.stream().map(user -> new ChatUserEntity(chat, user)).collect(Collectors.toSet());
+        chatUserRepository.saveAllAndFlush(chatUserEntities);
+    }
+
+    /** Удаляет участников из чата
+     * Если это был direct, то при выходе одного чела чат удаляется автоматически
+     * Если групповой, то чат удаляется если в нем не осталось участников
+     *
+    **/
+    @Override
+    public void removeUser(ChatEntity chat, UserEntity user) throws UserNotInTheChatException {
+        if (!checkUserInChat(chat, user)) throw new UserNotInTheChatException(user.getUsername(), chat.getChatId());
+        else chatUserRepository.deleteById(ChatUserKey.valueOf(user.getUserId(), chat.getChatId()));
+        if (chat.getChatType().equals(ChatEntity.ChatType.direct)) {
+            chatRepository.delete(chat);
+        } else if (chat.getChatType().equals(ChatEntity.ChatType.conversation) && chatUserRepository.countByChat(chat) == 0) {
+            chatRepository.delete(chat);
+        }
+    }
+
+    @Override
+    public void removeUsers(ChatEntity chat, Collection<UserEntity> users) {
+        Set<ChatUserEntity> chatUsers = users.stream()
+                .map(user -> chatUserRepository.findByChatAndUser(chat, user).get())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        chatUserRepository.deleteAll(chatUsers);
+    }
+
+    private void validateName(String name) {
+        Validator<String> nameValidator = new ValidatorImpl<>(
+                new MinLengthValidation(3).setNextChain(
+                        new MaxLengthValidation(40)
+                ));
+        nameValidator.validate(name);
+    }
+}
