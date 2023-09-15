@@ -7,7 +7,9 @@ import com.leopold.modules.chat.repos.MessageRepository;
 import com.leopold.modules.chat.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -54,21 +56,34 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Page<MessageEntity> getAllChatMessages(ChatEntity chat, Pageable pageable) {
+        pageable = getPageableForMessages(pageable);
         return messageRepository.findAllByChat(chat, pageable);
     }
 
     @Override
     public Page<MessageEntity> getAllSenderChatMessages(ChatEntity chat, UserEntity sender, Pageable pageable) {
+        pageable = getPageableForMessages(pageable);
         return messageRepository.findAllByChatAndSender(chat, sender, pageable);
     }
 
     @Override
     public Page<MessageEntity> getAllChatMessagesWithTimeInterval(ChatEntity chat, Timestamp start, Timestamp end, Pageable pageable) {
+        pageable = getPageableForMessages(pageable);
         return messageRepository.findAllByChatAndSendTimestampBetween(chat, start, end, pageable);
     }
 
     @Override
     public Page<MessageEntity> getAllSenderChatMessagesWithTimeInterval(ChatEntity chat, UserEntity sender, Timestamp start, Timestamp end, Pageable pageable) {
+        pageable = getPageableForMessages(pageable);
         return messageRepository.findAllByChatAndSenderAndSendTimestampBetween(chat, sender, start, end, pageable);
+    }
+
+    /** Ручками выставиляем для сообщений
+     *  сортировку от новых к старым
+     *  фронту не доверяем
+    **/
+    private static Pageable getPageableForMessages(Pageable pageable) {
+        Sort sort = Sort.by(Sort.Order.desc("sendTimestamp"));
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
 }

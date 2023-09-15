@@ -130,7 +130,6 @@ public class ChatRestControllerV1 {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    //TODO: bake messages by date and groups
     @GetMapping(value="/{chatId}/messages")
     @Operation(summary = "get messages from the chat, you should be a participant")
     @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Participant.name())")
