@@ -8,16 +8,14 @@ jobs:
   prepare-environment:
     runs-on: self-hosted
     steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: prep env start
         run: |
           echo prep env start
           pwd
           dir
           git status
-      - name: change directory
-        run: cd /home/convy
-      - name: checkout repo
-        uses: actions/checkout@v3
 #      - name: Stop and remove containers, networks
 #        run: docker-compose -f docker-compose.yml down
 #      - name: Remove unused data
@@ -32,16 +30,14 @@ jobs:
     runs-on: self-hosted
     needs: prepare-environment
     steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: deploy start
         run: |
           echo deploy start
           pwd
           dir
           git status
-      - name: change directory
-        run: cd /home/convy
-      - name: checkout repo
-        uses: actions/checkout@v3
 #      - name: docker-compose
 #        run: docker-compose --env-file ./env.properties up -d
       - name: deploy end
