@@ -11,9 +11,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -51,7 +50,10 @@ public class SecurityConfig {
             "/ws/**",
             "/app/**"
     };
-
+    private final String[] wsChat = {
+            "/ws/chat/**",
+            "/app/chat/**"
+    };
     @Autowired
     public SecurityConfig(JwtTokenProvider jwtTokenProvider, ChatService chatService) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -59,35 +61,41 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
+    @Order(2)
+    public SecurityFilterChain chat(HttpSecurity http) throws  Exception {
+        http
+                .securityMatcher(wsChat)
+                .authorizeHttpRequests(requests -> requests
+                        .anyRequest().authenticated()
+                )
+                .apply(new ChatAuthorizationConfigurer(chatService));
+        return http.build();
     }
 
     @Bean
+    @Order(1)
     public SecurityFilterChain base(HttpSecurity http) throws Exception {
         http
                 .cors(withDefaults())
-                .httpBasic().disable()
-                .csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(storage).permitAll()
                         .requestMatchers(swagger).permitAll()
                         .requestMatchers(login).permitAll()
+                        .requestMatchers(wsChat).authenticated()
                         .requestMatchers(ws).permitAll()
                         .anyRequest().authenticated()
                 )
-                .apply(new JwtTokenConfigurer(jwtTokenProvider))
-                .and()
-                .apply(new ChatAuthorizationConfigurer(chatService));
+                .apply(new JwtTokenConfigurer(jwtTokenProvider));
         return http.build();
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "PUT", "POST", "DELETE", "UPDATE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("X-Requested-With", "X-HTTP-Method-Override", "Content-Type", "Accept", "Authorization", "Set-Cookie"));
         configuration.setAllowCredentials(true);
