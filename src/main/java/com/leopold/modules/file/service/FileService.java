@@ -11,10 +11,13 @@ public interface FileService {
     FileEntity getFile(String url);
     FileEntity uploadFile(MultipartFile picture);
     void deleteFile(String url);
+    String composeUrl(String filename);
     private String encodeBase64Url(String rawUrl) {
         return Base64.getUrlEncoder().encodeToString(rawUrl.getBytes());
     }
     private String decodeBase64Url(String rawUrl) {
         return new String(Base64.getUrlDecoder().decode(rawUrl));
     }
+
+
 }

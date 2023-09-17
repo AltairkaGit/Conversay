@@ -31,8 +31,8 @@ public class SecurityConfig {
     private final ChatService chatService;
     private final String storage = "/storage/**";
     private final String[] login = {
-            "/api/v1/login",
-            "/api/v1/auth"
+            "/api/v**/login",
+            "/api/v**/auth"
     };
     private final String[] swagger = {
             "/v3/api-docs/**",
@@ -50,6 +50,9 @@ public class SecurityConfig {
             "/ws/**",
             "/app/**"
     };
+    private final String[] chat = {
+      "/api/v**/chat/**"
+    };
     private final String[] wsChat = {
             "/ws/chat/**",
             "/app/chat/**"
@@ -60,20 +63,10 @@ public class SecurityConfig {
         this.chatService = chatService;
     }
 
-    @Bean
-    @Order(2)
-    public SecurityFilterChain chat(HttpSecurity http) throws  Exception {
-        http
-                .securityMatcher(wsChat)
-                .authorizeHttpRequests(requests -> requests
-                        .anyRequest().authenticated()
-                )
-                .apply(new ChatAuthorizationConfigurer(chatService));
-        return http.build();
-    }
-
+    //TODO: разобраться с этой ебучей авторизацией, ух, шакалы
     @Bean
     @Order(1)
+    @SuppressWarnings("all")
     public SecurityFilterChain base(HttpSecurity http) throws Exception {
         http
                 .cors(withDefaults())
@@ -88,14 +81,16 @@ public class SecurityConfig {
                         .requestMatchers(ws).permitAll()
                         .anyRequest().authenticated()
                 )
-                .apply(new JwtTokenConfigurer(jwtTokenProvider));
+                .apply(new JwtTokenConfigurer(jwtTokenProvider))
+                .and()
+                .apply(new ChatAuthorizationConfigurer(chatService));
         return http.build();
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
+        configuration.addAllowedOriginPattern("*");
         configuration.setAllowedMethods(List.of("GET", "PUT", "POST", "DELETE", "UPDATE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("X-Requested-With", "X-HTTP-Method-Override", "Content-Type", "Accept", "Authorization", "Set-Cookie"));
         configuration.setAllowCredentials(true);

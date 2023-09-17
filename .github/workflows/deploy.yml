@@ -1,46 +1,20 @@
 name: Deploy
 
 on:
-  push:
-    branches: [ "main", "dev"]
-
+  workflow_dispatch:
 jobs:
   prepare-environment:
     runs-on: self-hosted
     steps:
-      - name: checkout repo
+      - name: get source code
         uses: actions/checkout@v3
-      - name: prep env start
-        run: |
-          echo prep env start
-          pwd
-          dir
-          git status
-#      - name: Stop and remove containers, networks
-#        run: docker-compose -f docker-compose.yml down
-#      - name: Remove unused data
-#        run: docker system prune -a -f
-      - name: prep env end
-        run: |
-          echo prep env end
-          pwd
-          dir
-          git status
+      - name: Stop and remove containers, networks
+        run: docker-compose -f docker-compose.yml down
+      - name: Remove unused data
+        run: docker system prune -a -f
   deploy:
     runs-on: self-hosted
     needs: prepare-environment
     steps:
-      - name: deploy start
-        run: |
-          echo deploy start
-          pwd
-          dir
-          git status
-#      - name: docker-compose
-#        run: docker-compose --env-file ./env.properties up -d
-      - name: deploy end
-        run: |
-          echo deploy end
-          pwd
-          dir
-          git status
+      - name: docker-compose
+        run: docker-compose --env-file /home/convy/env.properties up -d

@@ -5,7 +5,7 @@ services:
     ports:
       - "46876:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/convy/data
+      - ./postgres_data:/var/lib/postgresql/convy/data
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}

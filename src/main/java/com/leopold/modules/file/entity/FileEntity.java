@@ -25,9 +25,6 @@ public class FileEntity {
     @Column(name = "mime_type", nullable = false)
     private String mimeType;
 
-    @Column(name = "url", nullable = false)
-    private String url;
-
     @OneToOne(mappedBy = "profilePicture", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonBackReference
     private UserEntity profilePictureOfUser;
@@ -72,14 +69,6 @@ public class FileEntity {
         this.mimeType = mimeType;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public ServerEntity getServerPicture() {
         return serverPicture;
     }
@@ -113,8 +102,7 @@ public class FileEntity {
         if (!Objects.equals(fileId, that.fileId)) return false;
         if (!Objects.equals(name, that.name)) return false;
         if (!Objects.equals(size, that.size)) return false;
-        if (!Objects.equals(mimeType, that.mimeType)) return false;
-        return Objects.equals(url, that.url);
+        return Objects.equals(mimeType, that.mimeType);
     }
 
     @Override
@@ -123,7 +111,6 @@ public class FileEntity {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (size != null ? size.hashCode() : 0);
         result = 31 * result + (mimeType != null ? mimeType.hashCode() : 0);
-        result = 31 * result + (url != null ? url.hashCode() : 0);
         return result;
     }
 }

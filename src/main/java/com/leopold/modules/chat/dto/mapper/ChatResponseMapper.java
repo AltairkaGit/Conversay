@@ -1,5 +1,7 @@
 package com.leopold.modules.chat.dto.mapper;
 
+import com.leopold.modules.file.dto.mapper.FileResponseMapper;
+import com.leopold.modules.file.service.FileService;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.chat.dto.ChatResponseDto;
 import com.leopold.modules.chat.entity.ChatEntity;
@@ -20,7 +22,6 @@ import java.util.stream.Collectors;
 @Component
 @Mapper(componentModel = "spring")
 public abstract class ChatResponseMapper {
-    protected final String defaultChatPictureUrl = "http://localhost:8080/storage/defaultServer.png";
     @Autowired
     protected ChatService chatService;
     @Autowired
@@ -31,6 +32,10 @@ public abstract class ChatResponseMapper {
 
     @Autowired
     protected UserProfileResponseMapper userProfileResponseMapper;
+    @Autowired
+    protected FileResponseMapper fileResponseMapper;
+    @Autowired
+    protected FileService fileService;
 
     public ChatResponseDto convert(ChatEntity chat, UserEntity me) {
         ChatResponseDto chatResponseDto = new ChatResponseDto();
@@ -44,16 +49,16 @@ public abstract class ChatResponseMapper {
                 UserEntity companion = userEntity.get();
                 chatResponseDto.setChatName(companion.getUsername());
                 Optional<FileEntity> picture = companion.getProfilePicture();
-                picture.ifPresent(fileEntity -> chatResponseDto.setChatPictureUrl(fileEntity.getUrl()));
+                chatResponseDto.setChatPictureUrl(fileResponseMapper.map(picture));
             }
         }
         else if (chatResponseDto.getChatType() == ChatEntity.ChatType.conversation) {
             chatResponseDto.setChatName(chat.getChatName());
             Optional<FileEntity> picture = chat.getChatPicture();
-            picture.ifPresent(fileEntity -> chatResponseDto.setChatPictureUrl(fileEntity.getUrl()));
+            chatResponseDto.setChatPictureUrl(fileResponseMapper.map(picture));
         }
         if (chatResponseDto.getChatPictureUrl() == null) {
-            chatResponseDto.setChatPictureUrl(defaultChatPictureUrl);
+            chatResponseDto.setChatPictureUrl(fileService.composeUrl("defaultServer.png"));
         }
         if (chatResponseDto.getChatName() == null) {
             int count = 3;

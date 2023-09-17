@@ -5,6 +5,7 @@ import com.leopold.lib.validator.exception.MoreMaxLengthException;
 import com.leopold.lib.validator.exception.WrongEmailException;
 import com.leopold.modules.chat.exception.UserAlreadyInTheChatException;
 import com.leopold.modules.chat.exception.UserNotInTheChatException;
+import com.leopold.modules.file.exception.FileIsTooGreatException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -46,7 +47,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NO_CONTENT);
     }
 
-    @ExceptionHandler(MultipartException.class)
+    @ExceptionHandler(FileIsTooGreatException.class)
     public ResponseEntity<Object> handleMultipartException(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
