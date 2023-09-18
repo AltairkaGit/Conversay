@@ -26,6 +26,8 @@ services:
       - netgt
     expose:
       - 80
+    volumes:
+      - /home/k-admin/convy/env.properties:/home/convy/env.properties
 networks:
   netgt:
     driver: bridge
