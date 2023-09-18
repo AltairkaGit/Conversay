@@ -1,7 +1,8 @@
 name: Deploy
 
 on:
-  push: ['dev', 'main']
+  push:
+    branches: ['dev', 'main']
 jobs:
   prepare-environment:
     runs-on: self-hosted
