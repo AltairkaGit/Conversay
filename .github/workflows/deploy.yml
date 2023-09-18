@@ -14,7 +14,7 @@ jobs:
           pwd
           ls -l
       - name: Stop and remove containers, networks
-        run: sudo docker-compose --env-file /home/k-admin/convy/env.properties -f ./docker-compose.yml down
+        run: docker-compose --env-file /home/k-admin/convy/env.properties -f ./docker-compose.yml down
 #      - name: Remove unused data
 #        run: docker system prune -a -f
   deploy:
@@ -22,4 +22,4 @@ jobs:
     needs: prepare-environment
     steps:
       - name: docker-compose
-        run: sudo docker-compose --env-file /home/k-admin/convy/env.properties up -d
+        run: docker-compose --env-file /home/k-admin/convy/env.properties up -d
