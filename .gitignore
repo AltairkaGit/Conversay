@@ -7,6 +7,9 @@ target/
 ### Environment ###
 env.properties
 
+### Dev ###
+docker-compose-dev.yml
+
 ### STS ###
 .apt_generated
 .classpath

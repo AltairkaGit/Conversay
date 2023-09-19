@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:15
     ports:
-      - "46876:5432"
+      - "5432:5432"
     volumes:
-      - /home/k-admin/postgres/convy/data/db/data/:/var/lib/postgresql/data/
+      - C:/Program Files/PostgreSQL/15/data/:/var/lib/postgresql/data/
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "46877:80"
+      - "8080:80"
     depends_on:
       - db
     networks:
@@ -28,7 +28,7 @@ services:
     expose:
       - 80
     volumes:
-      - /home/k-admin/convy/:/usr/local/lib/
+      - C:/convy/env/:/usr/local/lib/
 networks:
   netgt:
     driver: bridge
