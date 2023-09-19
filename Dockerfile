@@ -8,7 +8,6 @@ WORKDIR /home/convy
 COPY pom.xml ./
 COPY src ./src
 
-
 #Install maven deps
 RUN mvn -f ./pom.xml clean package
 
@@ -17,6 +16,7 @@ RUN mvn -f ./pom.xml clean package
 #
 FROM amazoncorretto:17-alpine
 COPY --from=build /home/convy/target/leopold-0.0.1-SNAPSHOT.jar /usr/local/lib/
+COPY --from=build application.properties /usr/local/lib/
 #COPY --from=build /tmp/env.properties /usr/local/lib/
 # Expose the port your application will run on
 EXPOSE 80
