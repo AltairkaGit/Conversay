@@ -28,7 +28,7 @@ services:
     expose:
       - 80
     volumes:
-      - /home/k-admin/convy/:/home/
+      - /home/k-admin/convy/:/app/
 networks:
   netgt:
     driver: bridge

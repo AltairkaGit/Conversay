@@ -28,7 +28,7 @@ services:
     expose:
       - 80
     volumes:
-      - C:/convy/env/:/usr/local/lib/
+      - C:/convy/env/:/app/
 networks:
   netgt:
     driver: bridge

@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: get source code
         uses: actions/checkout@v3
+      - name: set env properties
+        run: yes | cp -f /home/k-admin/convy/env.properties .
       - name: Stop and remove containers, networks
         run: cat /home/k-admin/secret | sudo -S docker-compose --env-file /home/k-admin/convy/env.properties down
   deploy:
