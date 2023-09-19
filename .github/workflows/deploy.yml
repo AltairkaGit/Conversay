@@ -13,6 +13,8 @@ jobs:
         run: yes | cp -f /home/k-admin/convy/env.properties .
       - name: Stop and remove containers, networks
         run: cat /home/k-admin/secret | sudo -S docker-compose --env-file /home/k-admin/convy/env.properties down
+      - name: clean unused docker data
+        run: cat /home/k-admin/secret | sudo -S docker system prune
   deploy:
     runs-on: self-hosted
     needs: prepare-environment
