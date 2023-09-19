@@ -2,9 +2,9 @@
 # Build stage
 #
 FROM maven:3-amazoncorretto-17 AS build
-RUN ls -l /home
+RUN ls /home
 WORKDIR /home/convy
-RUN ls -l
+RUN ls
 RUN pwd
 
 COPY pom.xml ./
@@ -17,7 +17,7 @@ RUN mvn -f ./pom.xml clean package
 # Package stage
 #
 FROM amazoncorretto:17-alpine
-RUN ls -l
+RUN ls
 RUN pwd
 RUN ls /home/convy
 COPY --from=build /home/convy/target/leopold-0.0.1-SNAPSHOT.jar /usr/local/lib/
