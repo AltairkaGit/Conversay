@@ -15,7 +15,7 @@ RUN mvn -f ./pom.xml clean package
 #
 FROM amazoncorretto:17-alpine
 COPY --from=build /home/convy/target/leopold-0.0.1-SNAPSHOT.jar /usr/local/lib/
-#COPY --from=build application.properties /usr/local/lib/
+COPY --from=build /home/convy/src/main/resources /usr/local/lib/
 RUN chmod +x /usr/local/lib/leopold-0.0.1-SNAPSHOT.jar
 # Expose the port your application will run on
 EXPOSE 80
