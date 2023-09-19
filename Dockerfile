@@ -2,12 +2,11 @@
 # Build stage
 #
 FROM maven:3-amazoncorretto-17 AS build
+RUN ls -l /home
+WORKDIR /home/convy
 RUN ls -l
 RUN pwd
-WORKDIR /home/convy
 
-#COPY .mvn/ .mvn
-#COPY mvnw ./
 COPY pom.xml ./
 COPY src ./src
 
