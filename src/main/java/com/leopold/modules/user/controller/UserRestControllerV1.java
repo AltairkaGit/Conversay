@@ -6,6 +6,7 @@ import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.file.service.FileService;
 import com.leopold.modules.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ public class UserRestControllerV1 {
     }
 
     @GetMapping("")
+    @Operation(summary = "get your profile with additional data")
     public ResponseEntity<MyProfileDto> getMyProfile(@RequestAttribute("reqUserId") Long userId) {
         UserEntity user = userService.getUserById(userId);
         MyProfileDto responseDto = userProfileResponseMapper.convertMyProfile(user);
@@ -33,6 +35,7 @@ public class UserRestControllerV1 {
     }
 
     @GetMapping(value="/{userId}")
+    @Operation(summary = "get user profile with basic data")
     public ResponseEntity<UserProfileResponseDto> getUserProfile(@PathVariable("userId") Long someUserId) {
         UserEntity user = userService.getUserById(someUserId);
         UserProfileResponseDto responseDto = userProfileResponseMapper.convert(user);
@@ -40,6 +43,7 @@ public class UserRestControllerV1 {
     }
 
     @PutMapping(value= "/profilePicture")
+    @Operation(summary = "update profile picture, require upload a file on server and send a link")
     public ResponseEntity<UserProfileResponseDto> updateProfilePicture(@RequestAttribute("reqUserId") Long userId, UserUpdateProfilePictureDto dto) {
         UserEntity user = userService.getUserById(userId);
         FileEntity uploadingPicture = fileService.getFile(dto.getPictureUrlOnServer());
@@ -49,6 +53,7 @@ public class UserRestControllerV1 {
     }
 
     @PutMapping(value= "/email")
+    @Operation(summary = "update email")
     public ResponseEntity<UserProfileResponseDto> updateEmail(@RequestAttribute("reqUserId") Long userId, UserUpdateEmailDto dto) {
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updateEmail(user, dto.getEmail());
@@ -57,6 +62,7 @@ public class UserRestControllerV1 {
     }
 
     @PutMapping(value= "/username")
+    @Operation(summary = "update username")
     public ResponseEntity<UserProfileResponseDto> updateUsername(@RequestAttribute("reqUserId") Long userId, UserUpdateUsernameDto dto) {
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updateUsername(user, dto.getUsername());
@@ -65,6 +71,7 @@ public class UserRestControllerV1 {
     }
 
     @PutMapping(value= "/password")
+    @Operation(summary = "update password")
     public ResponseEntity<UserProfileResponseDto> updateUser(@RequestAttribute("reqUserId") Long userId, UserUpdatePasswordDto dto) {
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updatePassword(user, dto.getPassword());
@@ -73,9 +80,10 @@ public class UserRestControllerV1 {
     }
 
     @DeleteMapping(value= "")
-    public ResponseEntity<HttpStatus> deleteAccount(@RequestAttribute("reqUserId") Long userId) {
+    @Operation(summary = "delete account forever")
+    public ResponseEntity<Void> deleteAccount(@RequestAttribute("reqUserId") Long userId) {
         UserEntity user = userService.getUserById(userId);
         userService.deleteUser(user);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 }

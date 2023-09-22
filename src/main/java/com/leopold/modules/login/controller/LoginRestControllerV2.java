@@ -1,10 +1,12 @@
 package com.leopold.modules.login.controller;
 
 import com.leopold.modules.login.dto.LoginRequestDto;
+import com.leopold.modules.login.dto.RefreshTokenDto;
 import com.leopold.modules.login.dto.TokensResponseDto;
 import com.leopold.modules.login.service.LoginService;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +32,7 @@ public class LoginRestControllerV2 {
      * @throws CredentialException returns 401 if token is not ok
      */
     @PostMapping(value="/login")
+    @Operation(summary = "username and password login, returns access and refresh token if ok, 401 otherwise")
     public ResponseEntity<TokensResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) throws CredentialException {
         System.out.println("New query");
         System.out.println(loginRequestDto.toString());
@@ -42,10 +45,11 @@ public class LoginRestControllerV2 {
      * @param access access token from filter
      * @return code 200 if successful logout, 401 or 500 otherwise
      */
+    @Operation(summary = "logout the session on a specific device if ok, 401 otherwise")
     @GetMapping(value="/logout")
-    public ResponseEntity<HttpStatus> logoutSession(@RequestAttribute("accessToken") String access) throws AuthenticationException {
+    public ResponseEntity<Void> logoutSession(@RequestAttribute("accessToken") String access) throws AuthenticationException {
         loginService.logoutSession(access);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -53,10 +57,11 @@ public class LoginRestControllerV2 {
      * @param access access token from filter
      * @return code 200 if successful logout all sessions, 401 or 500 otherwise
      */
+    @Operation(summary = "logout all the sessions on all your devices if ok, 401 otherwise")
     @GetMapping(value="/logout-all-sessions")
-    public ResponseEntity<HttpStatus> logoutAllSessions(@RequestAttribute("accessToken") String access) throws AuthenticationException {
+    public ResponseEntity<Void> logoutAllSessions(@RequestAttribute("accessToken") String access) throws AuthenticationException {
         loginService.logoutAllSessions(access);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -64,8 +69,9 @@ public class LoginRestControllerV2 {
      * @return 200 if token is ok, 401 or 500 otherwise
      */
     @GetMapping(value="/verify-access")
-    public ResponseEntity<HttpStatus> verifyAccess() {
-        return new ResponseEntity<>(HttpStatus.OK);
+    @Operation(summary = "return 200 if token if ok, 401 otherwise")
+    public ResponseEntity<Void> verifyAccess() {
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -74,9 +80,10 @@ public class LoginRestControllerV2 {
      * @return code 200 and new access token, 401 or 500 otherwise
      */
     @PostMapping(value="/refresh")
-    public ResponseEntity<String> refreshToken(@RequestBody String refresh) {
+    @Operation(summary = "you send me refresh token as post, i send you an access one, it's public url, no authorization header needed")
+    public ResponseEntity<RefreshTokenDto> refreshAccessToken(@RequestBody String refresh) {
         String refreshed = loginService.refreshToken(refresh);
-        return ResponseEntity.ok(refreshed);
+        return ResponseEntity.ok(new RefreshTokenDto(refreshed));
     }
 
     @ExceptionHandler({IllegalArgumentException.class, AuthenticationException.class})

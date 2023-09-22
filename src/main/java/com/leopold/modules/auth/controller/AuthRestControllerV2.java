@@ -6,6 +6,7 @@ import com.leopold.modules.auth.dto.mapper.AuthRequestMapper;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.auth.service.AuthService;
 import com.leopold.modules.login.service.LoginService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,12 +29,12 @@ public class AuthRestControllerV2 {
         this.loginService = loginService;
     }
 
-    @PostMapping()
+    @PostMapping("")
+    @Operation(summary = "creates a new user with credentials, sends refresh and access token if ok, 400 otherwise")
     public ResponseEntity<TokensResponseDto> createUser(@RequestBody AuthRequestDto authRequestDto) throws CredentialException {
         UserEntity registeringUser = authRequestMapper.convert(authRequestDto);
         UserEntity user = authService.registerUser(registeringUser);
         TokensResponseDto tokens = loginService.jwtLoginUsernamePassword(user, user.getPassword());
         return ResponseEntity.ok(tokens);
     }
-
 }

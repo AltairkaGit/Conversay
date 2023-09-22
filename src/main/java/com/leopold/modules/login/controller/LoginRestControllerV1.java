@@ -7,6 +7,7 @@ import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.login.service.LoginService;
 import com.leopold.modules.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ public class LoginRestControllerV1 {
     }
 
     @PostMapping(value="")
+    @Operation(summary = "for web applications: username and password login, sets http only cookie with authorization")
     public ResponseEntity<UserProfileResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) throws CredentialException {
         UserEntity user = userService.getUserByUsername(loginRequestDto.getUsername());
         TokensResponseDto tokens = loginService.jwtLoginUsernamePassword(user, loginRequestDto.getPassword());

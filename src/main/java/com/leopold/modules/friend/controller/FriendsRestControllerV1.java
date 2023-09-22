@@ -1,9 +1,9 @@
 package com.leopold.modules.friend.controller;
 
+import com.leopold.modules.friend.service.FriendsService;
 import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.user.entity.UserEntity;
-import com.leopold.modules.friend.service.FriendsService;
 import com.leopold.modules.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,8 +32,8 @@ public class FriendsRestControllerV1 {
             Pageable pageable
     ) {
         UserEntity me = userService.getUserById(userId);
-        Page<UserEntity> page = friendsService.getFriends(me, pageable);
-        Page<UserProfileResponseDto> res = userProfileResponseMapper.convertPage(page);
+        Page<UserEntity> paged = friendsService.getFriends(me, pageable);
+        Page<UserProfileResponseDto> res = userProfileResponseMapper.convertPage(paged);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -43,8 +43,8 @@ public class FriendsRestControllerV1 {
             Pageable pageable
     ) {
         UserEntity me = userService.getUserById(userId);
-        Page<UserEntity> page = friendsService.getFriends(me, pageable);
-        Page<UserProfileResponseDto> res = userProfileResponseMapper.convertPage(page);
+        Page<UserEntity> paged = friendsService.getOffers(me, pageable);
+        Page<UserProfileResponseDto> res = userProfileResponseMapper.convertPage(paged);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 }
