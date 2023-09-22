@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;
 import javax.security.auth.login.CredentialException;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/v2")
@@ -86,7 +87,7 @@ public class LoginRestControllerV2 {
         return ResponseEntity.ok(new RefreshTokenDto(refreshed));
     }
 
-    @ExceptionHandler({IllegalArgumentException.class, AuthenticationException.class})
+    @ExceptionHandler({IllegalArgumentException.class, AuthenticationException.class, NoSuchElementException.class})
     public ResponseEntity<String> handleIllegalArgumentException(Exception ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }

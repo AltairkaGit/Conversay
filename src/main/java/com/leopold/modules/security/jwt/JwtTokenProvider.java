@@ -22,6 +22,7 @@ public interface JwtTokenProvider {
     String getUsernameFromRefresh(Jws<Claims> claims);
     Date getExpiration(Jws<Claims> claims);
     Long getUserId(Jws<Claims> claims);
+    Long getTokenId(Jws<Claims> claims);
     String getAppRolesFromRefresh(Jws<Claims> claims);
     String getAppRolesFromAccess(Jws<Claims> claims);
 }
