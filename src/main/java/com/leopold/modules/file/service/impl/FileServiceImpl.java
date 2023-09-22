@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,8 +23,8 @@ public class FileServiceImpl implements FileService {
     private String hostname;
     @Value("${upload.path}")
     private String uploadPath;
-    private final Long MAX_FILE_SIZE_BYTES = 1024 * 1024 * 35L;
-    private final String DEFAULT_FILE_NAME = "file_";
+    private static final Long MAX_FILE_SIZE_BYTES = 1024 * 1024 * 35L;
+    private static final String DEFAULT_FILE_NAME = "file_";
     private final FileRepository fileRepository;
 
     public FileServiceImpl(FileRepository fileRepository) {
@@ -46,23 +48,21 @@ public class FileServiceImpl implements FileService {
         String origFileName = file.getOriginalFilename();
         if (origFileName == null) throw new MultipartException("no filename");
         int lastPointIdx = origFileName.lastIndexOf('.');
-        if (size > MAX_FILE_SIZE_BYTES
-                || lastPointIdx == -1
-                || lastPointIdx + 1 == origFileName.length())
-            throw new FileIsTooGreatException("file size greater than " + (MAX_FILE_SIZE_BYTES / 1024 / 1024) + "MB");
-        String mimeType = file.getContentType();
-        if (mimeType == null) mimeType = "";
+        if (size > MAX_FILE_SIZE_BYTES) throw new FileIsTooGreatException("file size greater than " + (MAX_FILE_SIZE_BYTES / 1024 / 1024) + "MB");
+        if (lastPointIdx == -1 || lastPointIdx + 1 == origFileName.length()) throw new MultipartException("filename is incorrect: no file extension");
 
+        String mimeType = file.getContentType();
 
         String ext = origFileName.substring(lastPointIdx + 1);
         String fileName = DEFAULT_FILE_NAME + UUID.randomUUID() + UUID.randomUUID() + '.' + ext;
-        String filepath = uploadPath + "/" + fileName;
-        File dest = new File(filepath);
+        Path workdir = Paths.get(".").toAbsolutePath();
+        Path dest = Paths.get(workdir.toString(), uploadPath, fileName);
         try {
             file.transferTo(dest);
         } catch (IOException e) {
-            throw new MultipartException("uploading exception, " + filepath);
+            throw new MultipartException("internal saving error");
         }
+
         FileEntity fileEntity = new FileEntity();
         fileEntity.setName(fileName);
         fileEntity.setMimeType(mimeType);
@@ -73,9 +73,28 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public void deleteFileOnOs(Path path) {
+        try {
+            Files.delete(path);
+        } catch (IOException ignored) {
+        }
+    }
+
+    @Override
     public void deleteFile(String url) {
         FileEntity file = getFile(url);
+        String filename = urlToFilename(url);
+        Path workdir = Paths.get(".").toAbsolutePath();
+        Path path = Paths.get(workdir.toString(), uploadPath, filename);
+        deleteFileOnOs(path);
         fileRepository.deleteById(file.getFileId());
+    }
+
+    @Override
+    public String urlToFilename(String url) {
+        int lastSlash = url.lastIndexOf('/');
+        if (lastSlash + 1 == url.length() || lastSlash == -1) return null;
+        return url.substring(lastSlash + 1);
     }
 
     @Override

@@ -159,16 +159,15 @@ public class ChatRestControllerV1 {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    //TODO: authorization on ws
     @MessageMapping("/chat/{chatId}")
     //@PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Participant.name())")
     public MessageResponseDto sendMessage(
             @DestinationVariable("chatId") String chatIdParam,
-            @CookieValue("Authorization") String token,
+            @CookieValue("Authorization") String access,
             MessageResponseDto message
-    ) throws UnsupportedEncodingException {
-        if (!jwtTokenProvider.validateToken(token)) throw new SecurityException("token is not valid");
-        Long userId = jwtTokenProvider.getUserId(token);
+    ) {
+        if (!jwtTokenProvider.validateAccess(access)) throw new SecurityException("token is not valid");
+        Long userId = jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(access));
         Long chatId = Long.valueOf(chatIdParam);
         if (!chatService.checkUserInChat(chatId, userId)) throw new SecurityException("you are not in the chat");
         ChatEntity chat = chatService.getById(chatId);

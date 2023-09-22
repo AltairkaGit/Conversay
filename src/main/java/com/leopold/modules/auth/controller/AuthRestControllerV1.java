@@ -1,6 +1,7 @@
 package com.leopold.modules.auth.controller;
 
 import com.leopold.modules.auth.dto.AuthRequestDto;
+import com.leopold.modules.login.dto.TokensResponseDto;
 import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.auth.dto.mapper.AuthRequestMapper;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
@@ -22,24 +23,20 @@ import javax.security.auth.login.CredentialException;
 public class AuthRestControllerV1 {
     private final AuthService authService;
     private final AuthRequestMapper authRequestMapper;
-    private final UserProfileResponseMapper userProfileResponseMapper;
     private final LoginService loginService;
     @Autowired
-    public AuthRestControllerV1(AuthService authService, AuthRequestMapper authRequestMapper, UserProfileResponseMapper userProfileResponseMapper, LoginService loginService) {
+    public AuthRestControllerV1(AuthService authService, AuthRequestMapper authRequestMapper, LoginService loginService) {
         this.authService = authService;
         this.authRequestMapper = authRequestMapper;
-        this.userProfileResponseMapper = userProfileResponseMapper;
         this.loginService = loginService;
     }
 
     @PostMapping()
-    public ResponseEntity<UserProfileResponseDto> createUser(@RequestBody AuthRequestDto authRequestDto) throws CredentialException {
+    public ResponseEntity<TokensResponseDto> createUser(@RequestBody AuthRequestDto authRequestDto) throws CredentialException {
         UserEntity registeringUser = authRequestMapper.convert(authRequestDto);
         UserEntity user = authService.registerUser(registeringUser);
-        UserProfileResponseDto profile = userProfileResponseMapper.convert((user));
-        String token = loginService.jwtLoginUsernamePassword(user, user.getPassword());
-        HttpHeaders headers = new HttpHeaders();
-        return ResponseEntity.ok().headers(loginService.setJwtCookieInHeaders(headers, token)).body(profile);
+        TokensResponseDto tokens = loginService.jwtLoginUsernamePassword(user, user.getPassword());
+        return ResponseEntity.ok(tokens);
     }
 
 }

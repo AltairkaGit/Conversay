@@ -1,6 +1,7 @@
 package com.leopold.modules.login.controller;
 
 import com.leopold.modules.login.dto.LoginRequestDto;
+import com.leopold.modules.login.dto.TokensResponseDto;
 import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.user.entity.UserEntity;
@@ -32,21 +33,14 @@ public class LoginRestControllerV1 {
     @PostMapping(value="")
     public ResponseEntity<UserProfileResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) throws CredentialException {
         UserEntity user = userService.getUserByUsername(loginRequestDto.getUsername());
-        String token = loginService.jwtLoginUsernamePassword(user, loginRequestDto.getPassword());
-        if (token.isEmpty()) throw new CredentialException();
+        TokensResponseDto tokens = loginService.jwtLoginUsernamePassword(user, loginRequestDto.getPassword());
         UserProfileResponseDto profile = userProfileResponseMapper.convert(user);
         HttpHeaders headers = new HttpHeaders();
-        return  ResponseEntity.ok().headers(loginService.setJwtCookieInHeaders(headers, token)).body(profile);
-    }
-
-    @DeleteMapping(value = "")
-    public ResponseEntity<HttpStatus> logout() {
-        HttpHeaders headers = new HttpHeaders();
-        return ResponseEntity.ok().headers(loginService.removeJwtCookieFromHeaders(headers)).build();
+        return  ResponseEntity.ok().headers(loginService.setJwtCookieInHeaders(headers, tokens.getAccess())).body(profile);
     }
 
     @ExceptionHandler({CredentialException.class, NoSuchElementException.class})
     public ResponseEntity<Object> handleWrongLogin(Exception ex) {
-        return new ResponseEntity<>("Wrong login or password", HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("Wrong login or password", HttpStatus.UNAUTHORIZED);
     }
 }
