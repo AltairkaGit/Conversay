@@ -4,7 +4,6 @@ public class UserProfileResponseDto {
     private Long userId;
     private String username;
     private String profilePictureUrl;
-    private String gender;
 
     public Long getUserId() {
         return userId;
@@ -28,13 +27,5 @@ public class UserProfileResponseDto {
 
     public void setProfilePictureUrl(String profilePictureUrl) {
         this.profilePictureUrl = profilePictureUrl;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
     }
 }

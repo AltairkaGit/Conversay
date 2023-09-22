@@ -1,10 +1,21 @@
 package com.leopold.modules.user.dto;
 
-public class UserUpdateRequestDto {
-    private String profilePictureUrl;
+import com.leopold.modules.user.entity.UserEntity;
+
+public class MyProfileDto {
+    private Long userId;
     private String username;
+    private String profilePictureUrl;
     private String email;
-    private String password;
+    private UserEntity.Gender gender;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 
     public String getUsername() {
         return username;
@@ -30,11 +41,11 @@ public class UserUpdateRequestDto {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
+    public UserEntity.Gender getGender() {
+        return gender;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setGender(UserEntity.Gender gender) {
+        this.gender = gender;
     }
 }

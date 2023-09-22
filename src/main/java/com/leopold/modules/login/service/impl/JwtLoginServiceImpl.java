@@ -43,11 +43,17 @@ public class JwtLoginServiceImpl implements LoginService {
     }
 
     @Override
-    public void logout(String access) throws AuthenticationException {
-        String refresh = jwtTokenProvider.getRefreshFromAccess(access);
-        Optional<RefreshTokenEntity> refreshTokenEntity = refreshTokenRepository.findByRefresh(refresh);
-        if (refreshTokenEntity.isEmpty()) throw new AuthenticationException("token is not valid anymore");
-        refreshTokenRepository.delete(refreshTokenEntity.get());
+    public void logoutSession(String access) throws AuthenticationException {
+        Optional<RefreshTokenEntity> refresh = jwtTokenProvider.getRefreshFromAccess(access);
+        if (refresh.isEmpty()) throw new AuthenticationException("token is not valid anymore");
+        refreshTokenRepository.delete(refresh.get());
+    }
+
+    @Override
+    public void logoutAllSessions(String access) throws AuthenticationException {
+        Optional<RefreshTokenEntity> refresh = jwtTokenProvider.getRefreshFromAccess(access);
+        if (refresh.isEmpty()) throw new AuthenticationException("token is not valid anymore");
+        refreshTokenRepository.deleteAllByUserId(refresh.get().getUserId());
     }
 
     @Override

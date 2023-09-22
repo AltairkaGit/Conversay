@@ -43,8 +43,19 @@ public class LoginRestControllerV2 {
      * @return code 200 if successful logout, 401 or 500 otherwise
      */
     @GetMapping(value="/logout")
-    public ResponseEntity<HttpStatus> logout(@RequestAttribute("accessToken") String access) throws AuthenticationException {
-        loginService.logout(access);
+    public ResponseEntity<HttpStatus> logoutSession(@RequestAttribute("accessToken") String access) throws AuthenticationException {
+        loginService.logoutSession(access);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     *
+     * @param access access token from filter
+     * @return code 200 if successful logout all sessions, 401 or 500 otherwise
+     */
+    @GetMapping(value="/logout-all-sessions")
+    public ResponseEntity<HttpStatus> logoutAllSessions(@RequestAttribute("accessToken") String access) throws AuthenticationException {
+        loginService.logoutAllSessions(access);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

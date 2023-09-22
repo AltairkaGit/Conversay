@@ -1,11 +1,13 @@
 package com.leopold.modules.security.jwt;
 
 import com.leopold.modules.appRole.entity.AppRoleEntity;
+import com.leopold.modules.security.entity.RefreshTokenEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 public interface JwtTokenProvider {
     long EXPIRED_ACCESS_MS = 30 * 24 * 60 * 1000;
@@ -15,7 +17,7 @@ public interface JwtTokenProvider {
     boolean validateAccess(String access);
     boolean validateRefresh(String refresh);
     Jws<Claims> getClaims(String token);
-    String getRefreshFromAccess(String access);
+    Optional<RefreshTokenEntity> getRefreshFromAccess(String access);
     String getUsernameFromAccess(Jws<Claims> claims);
     String getUsernameFromRefresh(Jws<Claims> claims);
     Date getExpiration(Jws<Claims> claims);

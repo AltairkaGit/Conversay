@@ -38,7 +38,8 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     public String createAccess(String refresh) {
         Jws<Claims> refreshClaims = getClaims(refresh);
         Claims claims = Jwts.claims().setId(refreshClaims.getBody().getId());
-        claims.put("Refresh", refresh);
+        Optional<RefreshTokenEntity> entity = refreshTokenRepository.findByRefresh(refresh);
+        claims.put("TokenId", entity.get().getTokenId());
         Date now = new Date();
         Date expired = new Date(now.getTime() + EXPIRED_ACCESS_MS);
         Date refreshExpired = getExpiration(getClaims(refresh));
@@ -72,7 +73,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
     @Override
     public boolean validateAccess(String access) {
-        String refresh = getRefreshFromAccess(access);
+        String refresh = getRefreshFromAccess(access).get().getRefresh();
         return validateRefresh(refresh);
     }
 
@@ -93,9 +94,9 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public String getRefreshFromAccess(String access) {
+    public Optional<RefreshTokenEntity> getRefreshFromAccess(String access) {
         Jws<Claims> claims = getClaims(access);
-        return (String)claims.getBody().get("Refresh");
+        return refreshTokenRepository.findByTokenId(Long.parseLong((String)claims.getBody().get("TokenId")));
     }
 
     @Override
@@ -136,7 +137,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     private Jws<Claims> getRefreshClaimsFromAccessClaims(Jws<Claims> claims) {
-        String refresh = (String)claims.getBody().get("Refresh");
+        String refresh = refreshTokenRepository.findByTokenId(Long.parseLong((String)claims.getBody().get("TokenId"))).get().getRefresh();
         return getClaims(refresh);
     }
 }

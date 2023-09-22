@@ -1,6 +1,7 @@
 package com.leopold.modules.user.service.impl;
 
 import com.leopold.modules.file.entity.FileEntity;
+import com.leopold.modules.user.dto.UserUpdateRequestDto;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.user.repos.UserRepository;
 import com.leopold.modules.auth.service.AuthService;

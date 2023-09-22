@@ -2,14 +2,11 @@ package com.leopold.modules.auth.controller;
 
 import com.leopold.modules.auth.dto.AuthRequestDto;
 import com.leopold.modules.login.dto.TokensResponseDto;
-import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.auth.dto.mapper.AuthRequestMapper;
-import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.auth.service.AuthService;
 import com.leopold.modules.login.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,13 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.security.auth.login.CredentialException;
 
 @RestController
-@RequestMapping("api/v1/auth")
-public class AuthRestControllerV1 {
+@RequestMapping("api/v2/auth")
+public class AuthRestControllerV2 {
     private final AuthService authService;
     private final AuthRequestMapper authRequestMapper;
     private final LoginService loginService;
     @Autowired
-    public AuthRestControllerV1(AuthService authService, AuthRequestMapper authRequestMapper, LoginService loginService) {
+    public AuthRestControllerV2(AuthService authService, AuthRequestMapper authRequestMapper, LoginService loginService) {
         this.authService = authService;
         this.authRequestMapper = authRequestMapper;
         this.loginService = loginService;
