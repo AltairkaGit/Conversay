@@ -50,6 +50,15 @@ public class LoginRestControllerV2 {
 
     /**
      *
+     * @return 200 if token is ok, 401 or 500 otherwise
+     */
+    @GetMapping(value="/verify-access")
+    public ResponseEntity<HttpStatus> verifyAccess() {
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     *
      * @param refresh refresh token
      * @return code 200 and new access token, 401 or 500 otherwise
      */
