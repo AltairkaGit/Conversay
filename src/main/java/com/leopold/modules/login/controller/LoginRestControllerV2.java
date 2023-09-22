@@ -31,6 +31,8 @@ public class LoginRestControllerV2 {
      */
     @PostMapping(value="/login")
     public ResponseEntity<TokensResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) throws CredentialException {
+        System.out.println("New query");
+        System.out.println(loginRequestDto.toString());
         UserEntity user = userService.getUserByUsername(loginRequestDto.getUsername());
         return ResponseEntity.ok(loginService.jwtLoginUsernamePassword(user, loginRequestDto.getPassword()));
     }
