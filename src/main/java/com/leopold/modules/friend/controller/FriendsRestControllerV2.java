@@ -3,6 +3,7 @@ package com.leopold.modules.friend.controller;
 import com.leopold.lib.page.PageDto;
 import com.leopold.modules.friend.dto.DeleteFriendDto;
 import com.leopold.modules.login.dto.AcceptOfferDto;
+import com.leopold.modules.login.dto.RejectOfferDto;
 import com.leopold.modules.login.dto.SendOfferDto;
 import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
@@ -99,7 +100,7 @@ public class FriendsRestControllerV2 {
     @Operation(summary = "reject offer, you send me id of user you want to reject, 200 if ok, 404 otherwise")
     public ResponseEntity<Void> rejectOffer(
             @RequestAttribute("reqUserId") Long userId,
-            @RequestBody AcceptOfferDto dto
+            @RequestBody RejectOfferDto dto
     ) {
         UserEntity me = userService.getUserById(userId);
         UserEntity user = userService.getUserById(dto.getUserId());
