@@ -76,13 +76,13 @@ public class LoginRestControllerV2 {
 
     /**
      *
-     * @param refresh refresh token
+     * @param dto refresh token dto
      * @return code 200 and new access token, 401 or 500 otherwise
      */
     @PostMapping(value="/refresh")
     @Operation(summary = "you send me refresh token as post, i send you an access one, it's public url, no authorization header needed")
-    public ResponseEntity<RefreshTokenDto> refreshAccessToken(@RequestBody String refresh) {
-        String refreshed = loginService.refreshToken(refresh);
+    public ResponseEntity<RefreshTokenDto> refreshAccessToken(@RequestBody RefreshTokenDto dto) {
+        String refreshed = loginService.refreshToken(dto.getRefresh());
         return ResponseEntity.ok(new RefreshTokenDto(refreshed));
     }
 
