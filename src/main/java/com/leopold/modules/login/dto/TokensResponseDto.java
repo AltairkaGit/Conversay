@@ -4,6 +4,9 @@ public class TokensResponseDto {
     String access;
     String refresh;
 
+    public TokensResponseDto() {
+    }
+
     public TokensResponseDto(String access, String refresh) {
         this.access = access;
         this.refresh = refresh;

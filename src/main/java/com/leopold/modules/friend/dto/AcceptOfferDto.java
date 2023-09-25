@@ -1,6 +1,6 @@
-package com.leopold.modules.login.dto;
+package com.leopold.modules.friend.dto;
 
-public class RejectOfferDto {
+public class AcceptOfferDto {
     Long userId;
 
     public Long getUserId() {

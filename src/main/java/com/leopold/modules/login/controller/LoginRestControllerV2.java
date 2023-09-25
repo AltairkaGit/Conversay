@@ -1,5 +1,6 @@
 package com.leopold.modules.login.controller;
 
+import com.leopold.modules.login.dto.AccessTokenDto;
 import com.leopold.modules.login.dto.LoginRequestDto;
 import com.leopold.modules.login.dto.RefreshTokenDto;
 import com.leopold.modules.login.dto.TokensResponseDto;
@@ -9,6 +10,7 @@ import com.leopold.modules.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;
@@ -82,12 +84,15 @@ public class LoginRestControllerV2 {
      */
     @PostMapping(value="/refresh")
     @Operation(summary = "you send me refresh token as post, i send you an access one, it's public url, no authorization header needed")
-    public ResponseEntity<RefreshTokenDto> refreshAccessToken(@RequestBody RefreshTokenDto dto) {
-        String refreshed = loginService.refreshToken(dto.getRefresh());
-        return ResponseEntity.ok(new RefreshTokenDto(refreshed));
+    public ResponseEntity<AccessTokenDto> refreshAccessToken(@RequestBody RefreshTokenDto dto) {
+        String access = loginService.refreshToken(dto.getRefresh());
+        return ResponseEntity.ok(new AccessTokenDto(access));
     }
 
-    @ExceptionHandler({IllegalArgumentException.class, AuthenticationException.class, NoSuchElementException.class})
+    @ExceptionHandler({
+        NoSuchElementException.class,
+        HttpMessageNotReadableException.class,
+    })
     public ResponseEntity<String> handleIllegalArgumentException(Exception ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }

@@ -1,4 +1,4 @@
-package com.leopold.modules.login.dto;
+package com.leopold.modules.friend.dto;
 
 public class SendOfferDto {
     Long userId;

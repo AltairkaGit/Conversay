@@ -2,9 +2,9 @@ package com.leopold.modules.friend.controller;
 
 import com.leopold.lib.page.PageDto;
 import com.leopold.modules.friend.dto.DeleteFriendDto;
-import com.leopold.modules.login.dto.AcceptOfferDto;
-import com.leopold.modules.login.dto.RejectOfferDto;
-import com.leopold.modules.login.dto.SendOfferDto;
+import com.leopold.modules.friend.dto.AcceptOfferDto;
+import com.leopold.modules.friend.dto.RejectOfferDto;
+import com.leopold.modules.friend.dto.SendOfferDto;
 import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.user.entity.UserEntity;

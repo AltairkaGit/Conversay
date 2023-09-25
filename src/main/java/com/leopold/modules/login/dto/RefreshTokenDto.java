@@ -3,6 +3,9 @@ package com.leopold.modules.login.dto;
 public class RefreshTokenDto {
     String refresh;
 
+    public RefreshTokenDto() {
+    }
+
     public RefreshTokenDto(String refresh) {
         this.refresh = refresh;
     }
