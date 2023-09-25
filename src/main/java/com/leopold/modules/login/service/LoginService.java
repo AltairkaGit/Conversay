@@ -2,8 +2,8 @@ package com.leopold.modules.login.service;
 
 import com.leopold.modules.login.dto.TokensResponseDto;
 import com.leopold.modules.user.entity.UserEntity;
-import jakarta.transaction.Transactional;
 import org.springframework.http.HttpHeaders;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.AuthenticationException;
 import javax.security.auth.login.CredentialException;

@@ -20,6 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import javax.naming.AuthenticationException;
 import java.io.IOException;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class FilterComposer extends OncePerRequestFilter {
     private final List<FilterSequence> filters;
@@ -46,7 +47,7 @@ public class FilterComposer extends OncePerRequestFilter {
                 filter.doFilter(servletRequest, servletResponse, context);
             filterChain.doFilter(servletRequest, servletResponse);
         } catch (
-                MalformedJwtException | SignatureException | AuthenticationException ex
+                MalformedJwtException | SignatureException | NoSuchElementException | AuthenticationException ex
         ) {
             ResponseEntity<String> res = ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
             sendErrorResponse(servletResponse, res);

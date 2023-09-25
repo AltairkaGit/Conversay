@@ -40,7 +40,10 @@ public class JwtLoginServiceImpl implements LoginService {
     @Override
     public TokensResponseDto jwtLoginUsernamePassword(UserEntity user, String rawPassword) throws CredentialException {
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) throw new CredentialException("username or password is wrong");
-        return generateTokens(user);
+        String refresh = jwtTokenProvider.generateRefresh(user.getUserId(), user.getRoles());
+        jwtTokenProvider.createRefresh(user.getUserId(), refresh);
+        String access = jwtTokenProvider.generateAccess(refresh);
+        return new TokensResponseDto(access, refresh);
     }
 
     @Override
@@ -54,17 +57,20 @@ public class JwtLoginServiceImpl implements LoginService {
     public void logoutAllSessions(String access) throws AuthenticationException {
         Optional<RefreshTokenEntity> refresh = jwtTokenProvider.getRefreshFromAccess(access);
         if (refresh.isEmpty()) throw new AuthenticationException("token is not valid anymore");
-        refreshTokenRepository.deleteAllByUserId(refresh.get().getUserId());
+        Long userId = refresh.get().getUserId();
+        refreshTokenRepository.deleteAllByUserId(userId);
+        refreshTokenRepository.flush();
     }
 
     @Override
-    public TokensResponseDto refreshToken(String refresh) throws CredentialException {
-        Optional<RefreshTokenEntity> token = refreshTokenRepository.findByRefresh(refresh);
+    public TokensResponseDto refreshToken(String refreshOld) throws CredentialException {
+        Optional<RefreshTokenEntity> token = refreshTokenRepository.findByRefresh(refreshOld);
         if (token.isEmpty()) throw new CredentialException("login again, please");
-        UserEntity user = userService.getUserById(jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(refresh)));
-        TokensResponseDto tokens = generateTokens(user);
-        updateRefresh(token.get(), tokens.getRefresh());
-        return tokens;
+        UserEntity user = userService.getUserById(jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(refreshOld)));
+        String refresh = jwtTokenProvider.generateRefresh(user.getUserId(), user.getRoles());
+        updateRefresh(token.get(), refresh);
+        String access = jwtTokenProvider.generateAccess(refresh);
+        return new TokensResponseDto(access, refresh);
     }
 
     @Override
@@ -82,12 +88,6 @@ public class JwtLoginServiceImpl implements LoginService {
     private String bakeSetCookieHeader(Cookie cookie) {
         return String.format("%s=%s; Max-Age=%d; Path=%s; HttpOnly;",
                 cookie.getName(), cookie.getValue(), cookie.getMaxAge(), cookie.getPath());
-    }
-
-    private TokensResponseDto generateTokens(UserEntity user) {
-        String refreshed = jwtTokenProvider.createRefresh(user.getUserId(), user.getRoles());
-        String access = jwtTokenProvider.createAccess(refreshed);
-        return new TokensResponseDto(access, refreshed);
     }
 
     private void updateRefresh(RefreshTokenEntity token, String refresh) {
