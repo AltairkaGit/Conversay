@@ -13,13 +13,11 @@ public interface JwtTokenProvider {
     long EXPIRED_ACCESS_MS = 30 * 24 * 60 * 1000;
     long EXPIRED_REFRESH_MS = 365 * 24 * 60 * 1000;
     String createAccess(String refresh);
-    String createRefresh(Long userId, String username, List<AppRoleEntity> roles);
+    String createRefresh(Long userId, List<AppRoleEntity> roles);
     boolean validateAccess(String access);
     boolean validateRefresh(String refresh);
     Jws<Claims> getClaims(String token);
     Optional<RefreshTokenEntity> getRefreshFromAccess(String access);
-    String getUsernameFromAccess(Jws<Claims> claims);
-    String getUsernameFromRefresh(Jws<Claims> claims);
     Date getExpiration(Jws<Claims> claims);
     Long getUserId(Jws<Claims> claims);
     Long getTokenId(Jws<Claims> claims);

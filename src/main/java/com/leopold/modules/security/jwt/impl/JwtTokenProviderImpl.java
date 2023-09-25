@@ -53,8 +53,8 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public String createRefresh(Long userId, String username, List<AppRoleEntity> roles) {
-        Claims claims = Jwts.claims().setSubject(username).setId(userId.toString());
+    public String createRefresh(Long userId, List<AppRoleEntity> roles) {
+        Claims claims = Jwts.claims().setId(userId.toString());
         claims.put("AppRoles", mapAppRolesToStrings(roles));
         Date now = new Date();
         Date expired = new Date(now.getTime() + EXPIRED_REFRESH_MS);
@@ -97,17 +97,6 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     public Optional<RefreshTokenEntity> getRefreshFromAccess(String access) {
         Jws<Claims> claims = getClaims(access);
         return refreshTokenRepository.findByTokenId(getTokenId(claims));
-    }
-
-    @Override
-    public String getUsernameFromRefresh(Jws<Claims> claims) {
-        return claims.getBody().getSubject();
-    }
-
-    @Override
-    public String getUsernameFromAccess(Jws<Claims> claims) {
-        Jws<Claims> refreshClaims = getRefreshClaimsFromAccessClaims(claims);
-        return getUsernameFromRefresh(refreshClaims);
     }
 
     @Override

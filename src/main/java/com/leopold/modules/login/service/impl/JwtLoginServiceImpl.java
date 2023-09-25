@@ -6,6 +6,7 @@ import com.leopold.modules.security.repos.RefreshTokenRepository;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.security.jwt.JwtTokenProvider;
 import com.leopold.modules.login.service.LoginService;
+import com.leopold.modules.user.service.UserService;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,19 +28,19 @@ public class JwtLoginServiceImpl implements LoginService {
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserService userService;
     @Autowired
-    public JwtLoginServiceImpl(JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder, RefreshTokenRepository refreshTokenRepository) {
+    public JwtLoginServiceImpl(JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder, RefreshTokenRepository refreshTokenRepository, UserService userService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.userService = userService;
     }
 
     @Override
     public TokensResponseDto jwtLoginUsernamePassword(UserEntity user, String rawPassword) throws CredentialException {
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) throw new CredentialException("username or password is wrong");
-        String refresh = jwtTokenProvider.createRefresh(user.getUserId(),user.getUsername(), user.getRoles());
-        String access = jwtTokenProvider.createAccess(refresh);
-        return new TokensResponseDto(access, refresh);
+        return generateTokens(user);
     }
 
     @Override
@@ -57,8 +58,13 @@ public class JwtLoginServiceImpl implements LoginService {
     }
 
     @Override
-    public String refreshToken(String refresh) {
-        return jwtTokenProvider.createAccess(refresh);
+    public TokensResponseDto refreshToken(String refresh) throws CredentialException {
+        Optional<RefreshTokenEntity> token = refreshTokenRepository.findByRefresh(refresh);
+        if (token.isEmpty()) throw new CredentialException("login again, please");
+        UserEntity user = userService.getUserById(jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(refresh)));
+        TokensResponseDto tokens = generateTokens(user);
+        updateRefresh(token.get(), tokens.getRefresh());
+        return tokens;
     }
 
     @Override
@@ -76,6 +82,17 @@ public class JwtLoginServiceImpl implements LoginService {
     private String bakeSetCookieHeader(Cookie cookie) {
         return String.format("%s=%s; Max-Age=%d; Path=%s; HttpOnly;",
                 cookie.getName(), cookie.getValue(), cookie.getMaxAge(), cookie.getPath());
+    }
+
+    private TokensResponseDto generateTokens(UserEntity user) {
+        String refreshed = jwtTokenProvider.createRefresh(user.getUserId(), user.getRoles());
+        String access = jwtTokenProvider.createAccess(refreshed);
+        return new TokensResponseDto(access, refreshed);
+    }
+
+    private void updateRefresh(RefreshTokenEntity token, String refresh) {
+        token.setRefresh(refresh);
+        refreshTokenRepository.saveAndFlush(token);
     }
 
 }

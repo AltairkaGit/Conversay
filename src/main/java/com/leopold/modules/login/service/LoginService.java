@@ -11,9 +11,8 @@ import javax.security.auth.login.CredentialException;
 @Transactional
 public interface LoginService {
     TokensResponseDto jwtLoginUsernamePassword(UserEntity user, String rawPassword) throws CredentialException;
+    TokensResponseDto refreshToken(String refresh) throws CredentialException;
     void logoutSession(String access) throws AuthenticationException;
     void logoutAllSessions(String access) throws AuthenticationException;
-
-    String refreshToken(String refresh);
     HttpHeaders setJwtCookieInHeaders(HttpHeaders old, String token);
 }

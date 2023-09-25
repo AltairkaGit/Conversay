@@ -80,13 +80,13 @@ public class LoginRestControllerV2 {
     /**
      *
      * @param dto refresh token dto
-     * @return code 200 and new access token, 401 or 500 otherwise
+     * @return code 200 and new tokens, 401 or 500 otherwise
      */
     @PostMapping(value="/refresh")
-    @Operation(summary = "you send me refresh token as post, i send you an access one, it's public url, no authorization header needed")
-    public ResponseEntity<AccessTokenDto> refreshAccessToken(@RequestBody RefreshTokenDto dto) {
-        String access = loginService.refreshToken(dto.getRefresh());
-        return ResponseEntity.ok(new AccessTokenDto(access));
+    @Operation(summary = "you send me refresh token as post, i send you new tokens, it's public url, no authorization header needed")
+    public ResponseEntity<TokensResponseDto> refreshAccessToken(@RequestBody RefreshTokenDto dto) throws CredentialException {
+        TokensResponseDto tokens = loginService.refreshToken(dto.getRefresh());
+        return ResponseEntity.ok(tokens);
     }
 
     @ExceptionHandler({
