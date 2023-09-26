@@ -35,7 +35,7 @@ public class LoginRestControllerV2 {
      * @throws CredentialException returns 401 if token is not ok
      */
     @PostMapping(value="/login")
-    @Operation(summary = "username and password login, returns access and refresh token if ok, 401 otherwise")
+    @Operation(summary = "[Public url] username and password login, returns access and refresh token if ok, 401, 500 otherwise")
     public ResponseEntity<TokensResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) throws CredentialException {
         System.out.println("New query");
         System.out.println(loginRequestDto.toString());
@@ -48,7 +48,7 @@ public class LoginRestControllerV2 {
      * @param access access token from filter
      * @return code 200 if successful logout, 401 or 500 otherwise
      */
-    @Operation(summary = "logout the session on a specific device if ok, 401 otherwise")
+    @Operation(summary = "logout the session on a specific device if ok, 401, 500 otherwise")
     @GetMapping(value="/logout")
     public ResponseEntity<Void> logoutSession(@RequestAttribute("accessToken") String access) throws AuthenticationException {
         loginService.logoutSession(access);
@@ -60,7 +60,7 @@ public class LoginRestControllerV2 {
      * @param access access token from filter
      * @return code 200 if successful logout all sessions, 401 or 500 otherwise
      */
-    @Operation(summary = "logout all the sessions on all your devices if ok, 401 otherwise")
+    @Operation(summary = "logout all the sessions on all your devices if ok, 401, 500 otherwise")
     @GetMapping(value="/logout-all-sessions")
     public ResponseEntity<Void> logoutAllSessions(@RequestAttribute("accessToken") String access) throws AuthenticationException {
         loginService.logoutAllSessions(access);
@@ -72,7 +72,7 @@ public class LoginRestControllerV2 {
      * @return 200 if token is ok, 401 or 500 otherwise
      */
     @GetMapping(value="/verify-access")
-    @Operation(summary = "return 200 if token if ok, 401 otherwise")
+    @Operation(summary = "return 200 if token if ok, 401, 500 otherwise")
     public ResponseEntity<Void> verifyAccess() {
         return ResponseEntity.ok().build();
     }
@@ -83,7 +83,7 @@ public class LoginRestControllerV2 {
      * @return code 200 and new tokens, 401 or 500 otherwise
      */
     @PostMapping(value="/refresh")
-    @Operation(summary = "you send me refresh token as post, i send you new tokens, it's public url, no authorization header needed")
+    @Operation(summary = "[Public url] return 200 and two tokens if ok, 401, 500 otherwise")
     public ResponseEntity<TokensResponseDto> refreshAccessToken(@RequestBody RefreshTokenDto dto) throws CredentialException {
         TokensResponseDto tokens = loginService.refreshToken(dto.getRefresh());
         return ResponseEntity.ok(tokens);

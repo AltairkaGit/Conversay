@@ -21,10 +21,8 @@ import java.util.Optional;
 
 @Service
 public class JwtLoginServiceImpl implements LoginService {
-    @Value("${JWT_TOKEN_PREFIX}")
-    private String tokenHeader;
-    @Value("${JWT_TOKEN_EXPIRED}")
-    private Integer tokenExpires;
+    private static final String tokenHeader = "Authorization";
+    private static final Integer tokenExpires = 365;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -78,7 +76,7 @@ public class JwtLoginServiceImpl implements LoginService {
         HttpHeaders headers = new HttpHeaders(old);
         Cookie cookie = new Cookie(tokenHeader, token);
         cookie.setHttpOnly(true);
-        cookie.setMaxAge(tokenExpires);
+        cookie.setMaxAge(tokenExpires * 24 * 60 * 1000);
         cookie.setPath("/");
         String setCookieHeader =bakeSetCookieHeader(cookie);
         headers.add("Set-Cookie", setCookieHeader);

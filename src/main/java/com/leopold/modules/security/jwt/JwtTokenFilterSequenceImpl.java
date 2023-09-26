@@ -29,7 +29,9 @@ public class JwtTokenFilterSequenceImpl implements FilterSequence {
             throws IOException, ServletException, AuthenticationException {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         String access = extractTokenStrategy.extractToken(httpServletRequest);
-        if (access == null || !jwtTokenProvider.validateAccess(access)) throw new AuthenticationException("access token is not ok");
+        if (access == null ) throw new AuthenticationException("no authorization header");
+        if (access.isEmpty()) throw new AuthenticationException("empty access token");
+        if (!jwtTokenProvider.validateAccess(access)) throw new AuthenticationException("access token is not ok");
         context.put(ComposerContextEnum.UserId, jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(access)));
         Long userId = jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(access));
         request.setAttribute("reqUserId", userId);
