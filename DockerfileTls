@@ -17,6 +17,7 @@ COPY --from=build /app/src/main/resources .
 RUN rm application.properties
 RUN mv application-tls.properties application.properties
 COPY --from=build /app/ .
+RUN chmod +r Server-keystore.p12
 RUN chmod +x leopold-0.0.1-SNAPSHOT.jar
 
 # Expose the port your application will run on
