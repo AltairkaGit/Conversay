@@ -15,7 +15,7 @@ WORKDIR /app-serv/
 COPY --from=build /app/target/leopold-0.0.1-SNAPSHOT.jar .
 COPY --from=build /app/src/main/resources .
 RUN rm application.properties
-COPY application-tls.properties application.properties
+COPY ./application-tls.properties ./application.properties
 COPY --from=build /app/* .
 RUN chmod +x leopold-0.0.1-SNAPSHOT.jar
 
