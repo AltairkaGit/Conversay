@@ -44,6 +44,7 @@ public class SecurityConfig {
             "/api/v**/login",
             "/api/v**/auth",
             "/api/v**/refresh",
+            "/api/v**/hello-world",
 
             "/v3/api-docs/**",
             "/configuration/ui",
