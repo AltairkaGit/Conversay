@@ -8,11 +8,9 @@ import com.leopold.modules.auth.service.AuthService;
 import com.leopold.modules.login.service.LoginService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.security.auth.login.CredentialException;
 
@@ -34,7 +32,12 @@ public class AuthRestControllerV2 {
     public ResponseEntity<TokensResponseDto> createUser(@RequestBody AuthRequestDto authRequestDto) throws CredentialException {
         UserEntity registeringUser = authRequestMapper.convert(authRequestDto);
         UserEntity user = authService.registerUser(registeringUser);
-        TokensResponseDto tokens = loginService.jwtLoginUsernamePassword(user, user.getPassword());
+        TokensResponseDto tokens = loginService.jwtLoginUsernamePassword(user, authRequestDto.getPassword());
         return ResponseEntity.ok(tokens);
+    }
+
+    @ExceptionHandler({CredentialException.class})
+    public ResponseEntity<String> handleTakenCredentials(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }

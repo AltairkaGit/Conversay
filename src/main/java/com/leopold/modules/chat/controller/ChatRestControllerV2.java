@@ -1,21 +1,22 @@
 package com.leopold.modules.chat.controller;
 
+import com.leopold.lib.page.PageDto;
 import com.leopold.modules.chat.dto.ChatResponseDto;
 import com.leopold.modules.chat.dto.CreateGroupChatRequestDto;
 import com.leopold.modules.chat.dto.MessageResponseDto;
 import com.leopold.modules.chat.dto.RemoveUsersFromChatRequestDto;
-import com.leopold.modules.chat.dto.mapper.RemoveUsersFromChatMapper;
-import com.leopold.modules.chat.exception.UserNotInTheChatException;
-import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.chat.dto.mapper.ChatResponseMapper;
 import com.leopold.modules.chat.dto.mapper.MessageResponseMapper;
-import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
+import com.leopold.modules.chat.dto.mapper.RemoveUsersFromChatMapper;
 import com.leopold.modules.chat.entity.ChatEntity;
 import com.leopold.modules.chat.entity.MessageEntity;
-import com.leopold.modules.user.entity.UserEntity;
-import com.leopold.modules.security.jwt.JwtTokenProvider;
+import com.leopold.modules.chat.exception.UserNotInTheChatException;
 import com.leopold.modules.chat.service.ChatService;
 import com.leopold.modules.chat.service.MessageService;
+import com.leopold.modules.security.jwt.JwtTokenProvider;
+import com.leopold.modules.user.dto.UserProfileResponseDto;
+import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
+import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +30,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/v1/chat")
-public class ChatRestControllerV1 {
+@RequestMapping("/api/v2/chat")
+public class ChatRestControllerV2 {
     private final ChatService chatService;
     private final UserService userService;
     private final MessageService messageService;
@@ -46,7 +46,7 @@ public class ChatRestControllerV1 {
     private final RemoveUsersFromChatMapper removeUsersFromChatMapper;
 
     @Autowired
-    public ChatRestControllerV1(
+    public ChatRestControllerV2(
             ChatService chatService,
             UserService userService,
             MessageService messageService,
@@ -68,14 +68,14 @@ public class ChatRestControllerV1 {
 
     @Operation(summary = "Get a page of your chats")
     @GetMapping(value="")
-    public ResponseEntity<Page<ChatResponseDto>> getChats(
+    public ResponseEntity<PageDto<ChatResponseDto>> getChats(
             @RequestAttribute("reqUserId") Long userId,
             Pageable pageable
     ) {
         UserEntity me = userService.getUserById(userId);
         Page<ChatEntity> chats = chatService.getUserChats(me, pageable);
-        Page<ChatResponseDto> res = chatResponseMapper.convertPage(chats, me);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        PageDto<ChatResponseDto> res = PageDto.of(chatResponseMapper.convertPage(chats, me));
+        return ResponseEntity.ok(res);
     }
 
     @Operation(summary = "Get a chat by id, you should be a participant")
@@ -88,7 +88,7 @@ public class ChatRestControllerV1 {
         ChatEntity chat = chatService.getById(chatId);
         UserEntity me = userService.getUserById(userId);
         ChatResponseDto res = chatResponseMapper.convert(chat, me);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        return ResponseEntity.ok(res);
     }
 
     @Operation(summary = "create a group chat")
@@ -101,25 +101,25 @@ public class ChatRestControllerV1 {
         ChatEntity chat = chatService.create(dto.getName(), users);
         UserEntity me = userService.getUserById(userId);
         ChatResponseDto res = chatResponseMapper.convert(chat, me);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        return ResponseEntity.ok(res);
     }
 
     @DeleteMapping("/{chatId}")
     @Operation(summary = "leave a chat if you are a participant")
     @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Participant.name())")
-    public ResponseEntity<Object> leaveChat(
+    public ResponseEntity<Void> leaveChat(
             @RequestAttribute("reqUserId") Long myId,
             @PathVariable Long chatId
     ) throws UserNotInTheChatException {
         ChatEntity chat = chatService.getById(chatId);
         UserEntity me = userService.getUserById(myId);
         chatService.removeUser(chat, me);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
     @DeleteMapping("/{chatId}/users")
     @Operation(summary = "kick users from a chat, you should be admin or moderator")
     @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Admin.name()) || hasAuthority(T(com.leopold.roles.ChatRoles).Moderator.name())")
-    public ResponseEntity<Object> removeFromChat(
+    public ResponseEntity<Void> removeFromChat(
             @RequestAttribute("reqUserId") Long myId,
             @PathVariable Long chatId,
             @RequestBody RemoveUsersFromChatRequestDto ids
@@ -127,7 +127,7 @@ public class ChatRestControllerV1 {
         ChatEntity chat = chatService.getById(chatId);
         Set<UserEntity> users = removeUsersFromChatMapper.convert(ids);
         chatService.removeUsers(chat, users);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping(value="/{chatId}/messages")
@@ -158,4 +158,6 @@ public class ChatRestControllerV1 {
         Page<UserProfileResponseDto> res = userProfileResponseMapper.convertPage(users);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+
+
 }

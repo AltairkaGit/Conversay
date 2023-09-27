@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.stream.Stream;
 
+@Transactional
 public interface ChatUserService {
     @Transactional(readOnly = true)
     Stream<UserEntity> getChatUsers(ChatEntity chat);

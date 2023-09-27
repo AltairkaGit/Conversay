@@ -1,7 +1,7 @@
 package com.leopold.lib.validator.exception;
 
 public class LessMinLengthException extends  RuntimeException {
-    public LessMinLengthException(int len) {
-        super("Length is ess than min length, min len is: " + len);
+    public LessMinLengthException(String field, int len) {
+        super(field + ": Length is less than min length, min len is: " + len);
     }
 }

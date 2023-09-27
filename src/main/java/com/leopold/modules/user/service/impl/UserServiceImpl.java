@@ -80,18 +80,19 @@ public class UserServiceImpl implements UserService, AuthService {
     }
 
     @Override
-    public UserEntity registerUser(UserEntity registringUser) throws CredentialException {
-        validateEmail(registringUser.getEmail());
-        validatePassword(registringUser.getPassword());
-        if (userRepository.findByUsername(registringUser.getUsername()).isPresent())
+    public UserEntity registerUser(UserEntity registeringUser) throws CredentialException {
+        validateName(registeringUser.getUsername());
+        validateEmail(registeringUser.getEmail());
+        validatePassword(registeringUser.getPassword());
+        if (userRepository.findByUsername(registeringUser.getUsername()).isPresent())
             throw new CredentialException("this username is taken by someone");
-        if (userRepository.findByEmail(registringUser.getEmail()).isPresent())
+        if (userRepository.findByEmail(registeringUser.getEmail()).isPresent())
             throw new CredentialException("this email is taken by someone");
         UserEntity user = new UserEntity();
-        user.setUsername(registringUser.getUsername());
-        user.setEmail(registringUser.getEmail());
-        user.setGender(registringUser.getGender());
-        user.setPassword(passwordEncoder.encode(registringUser.getPassword()));
+        user.setUsername(registeringUser.getUsername());
+        user.setEmail(registeringUser.getEmail());
+        user.setGender(registeringUser.getGender());
+        user.setPassword(passwordEncoder.encode(registeringUser.getPassword()));
 
         userRepository.saveAndFlush(user);
         return user;
@@ -104,7 +105,7 @@ public class UserServiceImpl implements UserService, AuthService {
 
     private void validateEmail(String email) {
         Validator<String> emailValidator = new ValidatorImpl<>(new StrictUnicodeEmailValidation());
-        emailValidator.validate(email);
+        emailValidator.validate("Email", email);
     }
 
     private void validatePassword(String password) {
@@ -112,7 +113,7 @@ public class UserServiceImpl implements UserService, AuthService {
                 new MinLengthValidation(8).setNextChain(
                 new MaxLengthValidation(50)
             ));
-        passwordValidator.validate(password);
+        passwordValidator.validate("Password", password);
     }
 
     private void validateName(String name) {
@@ -120,6 +121,6 @@ public class UserServiceImpl implements UserService, AuthService {
                 new MinLengthValidation(2).setNextChain(
                         new MaxLengthValidation(25)
                 ));
-        nameValidator.validate(name);
+        nameValidator.validate("username", name);
     }
 }

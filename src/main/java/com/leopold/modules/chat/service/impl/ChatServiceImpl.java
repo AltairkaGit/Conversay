@@ -158,6 +158,6 @@ public class ChatServiceImpl implements ChatService {
                 new MinLengthValidation(3).setNextChain(
                         new MaxLengthValidation(40)
                 ));
-        nameValidator.validate(name);
+        nameValidator.validate("ChatName", name);
     }
 }

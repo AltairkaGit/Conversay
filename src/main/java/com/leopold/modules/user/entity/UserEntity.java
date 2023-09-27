@@ -8,6 +8,7 @@ import com.leopold.modules.chat.entity.MessageEntity;
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.friend.entity.FriendsEntity;
 import com.leopold.modules.server.entity.ServerUserEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -18,7 +19,8 @@ import java.util.Set;
 @Entity
 @Table(name = "user")
 public class UserEntity {
-    public enum Gender {male, female};
+    @Schema
+    public enum Gender { male, female };
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -107,7 +109,7 @@ public class UserEntity {
     }
 
     public List<AppRoleEntity> getRoles() {
-        return roles;
+        return roles == null ? List.of() : roles;
     }
 
     public Optional<FileEntity> getProfilePicture() {

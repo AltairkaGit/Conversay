@@ -11,7 +11,7 @@ public class ValidatorImpl<T> implements Validator<T> {
     }
 
     @Override
-    public void validate(T t) {
-        chain.process(t);
+    public void validate(String field, T t) {
+        chain.process(field, t);
     }
 }

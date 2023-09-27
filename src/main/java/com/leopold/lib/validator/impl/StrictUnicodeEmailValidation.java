@@ -12,8 +12,8 @@ public class StrictUnicodeEmailValidation extends AbstractValidationChain<String
     }
 
     @Override
-    public void process(String email) {
+    public void process(String field, String email) {
         if (!pattern.matcher(email).matches()) throw new WrongEmailException();
-        else if (chain != null) chain.process(email);
+        else if (chain != null) chain.process(field, email);
     }
 }

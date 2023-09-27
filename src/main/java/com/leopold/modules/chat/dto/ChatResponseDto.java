@@ -1,11 +1,13 @@
 package com.leopold.modules.chat.dto;
 
 import com.leopold.modules.chat.entity.ChatEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class ChatResponseDto {
     private Long chatId;
     private String chatName;
     private String chatPictureUrl;
+    @Schema
     private ChatEntity.ChatType chatType;
 
     public Long getChatId() {

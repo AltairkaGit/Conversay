@@ -11,8 +11,8 @@ public class MinLengthValidation extends AbstractValidationChain<String> {
     }
 
     @Override
-    public void process(String s) {
-        if (s.length() < minLength) throw new LessMinLengthException(minLength);
-        else if (chain != null) chain.process(s);
+    public void process(String field, String s) {
+        if (s.length() < minLength) throw new LessMinLengthException(field, minLength);
+        else if (chain != null) chain.process(field, s);
     }
 }

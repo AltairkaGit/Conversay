@@ -3,6 +3,7 @@ package com.leopold.modules.chat.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.leopold.modules.file.entity.FileEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.util.Objects;
@@ -12,6 +13,7 @@ import java.util.Set;
 @Entity
 @Table(name = "chat")
 public class ChatEntity {
+    @Schema
     public enum ChatType {direct, conversation}
 
     @Id

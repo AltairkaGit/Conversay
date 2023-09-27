@@ -11,8 +11,8 @@ public class MaxLengthValidation extends AbstractValidationChain<String> {
     }
 
     @Override
-    public void process(String s) {
-        if (s.length() > maxLength) throw new MoreMaxLengthException(maxLength);
-        else if (chain != null) chain.process(s);
+    public void process(String field, String s) {
+        if (s.length() > maxLength) throw new MoreMaxLengthException(field, maxLength);
+        else if (chain != null) chain.process(field, s);
     }
 }
