@@ -1,10 +1,11 @@
-package com.leopold.modules.security.jwt.impl;
+package com.leopold.modules.security.tokenExtractor;
 
-import com.leopold.modules.security.jwt.ExtractTokenStrategy;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.stereotype.Component;
 
-public class ExtractTokenCookieStrategy implements ExtractTokenStrategy {
+@Component
+class ExtractTokenCookieStrategy implements ExtractTokenStrategy {
     @Override
     public String extractToken(HttpServletRequest req) {
         Cookie[] cookies = req.getCookies();

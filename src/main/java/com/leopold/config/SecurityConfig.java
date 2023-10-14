@@ -1,16 +1,7 @@
 package com.leopold.config;
 
-import com.leopold.modules.security.authentication.AuthenticationFilterSequenceImpl;
-import com.leopold.modules.security.chatAuthorization.ChatAuthorizationFilterSequenceImpl;
 import com.leopold.modules.security.composer.FilterComposer;
-import com.leopold.modules.security.jwt.ExtractTokenStrategy;
 import com.leopold.modules.security.configurer.FiltersConfigurer;
-import com.leopold.modules.security.jwt.JwtTokenFilterSequenceImpl;
-import com.leopold.modules.security.jwt.JwtTokenProvider;
-import com.leopold.modules.chat.service.ChatService;
-import com.leopold.modules.security.jwt.impl.ExtractTokenCookieStrategy;
-import com.leopold.modules.security.jwt.impl.ExtractTokenHeadersStrategy;
-import com.leopold.modules.security.users.UserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,10 +26,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final JwtTokenProvider jwtTokenProvider;
-    private final ChatService chatService;
-    private final UserDetailsService userDetailsService;
-    private final static String[] permitted = {
+    private final FilterComposer filterComposer;
+    public final static String[] permitted = {
             "/storage/**",
 
             "/api/v**/login",
@@ -56,30 +45,27 @@ public class SecurityConfig {
             "/swagger-ui/index.html",
             "/swagger-ui/index.html/**",
 
-            "/ws/**",
             "/app/**"
     };
-    private final static List<String> permittedList = Arrays.asList(permitted);
+    public final static List<String> permittedList = Arrays.asList(permitted);
     @Autowired
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider, ChatService chatService, UserDetailsService userDetailsService) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.chatService = chatService;
-        this.userDetailsService = userDetailsService;
+    public SecurityConfig(FilterComposer filterComposer) {
+        this.filterComposer = filterComposer;
     }
 
     @Bean
     @Order(1)
     public SecurityFilterChain apiV1(HttpSecurity http) throws Exception {
-        return apiHttpSecurity(http, "/api/v1/**", new ExtractTokenCookieStrategy()).build();
+        return apiHttpSecurity(http, "/api/v1/**").build();
     }
 
     @Bean
     @Order(2)
     public SecurityFilterChain apiV2(HttpSecurity http) throws Exception {
-        return apiHttpSecurity(http, "/api/v2/**", new ExtractTokenHeadersStrategy()).build();
+        return apiHttpSecurity(http, "/api/v2/**").build();
     }
 
-    private HttpSecurity apiHttpSecurity(HttpSecurity http, String securityMatcher, ExtractTokenStrategy strategy) throws Exception {
+    private HttpSecurity apiHttpSecurity(HttpSecurity http, String securityMatcher) throws Exception {
         http
                 .securityMatcher(securityMatcher)
                 .cors(withDefaults())
@@ -90,14 +76,7 @@ public class SecurityConfig {
                         .requestMatchers(permitted).permitAll()
                         .anyRequest().authenticated()
                 )
-                .apply(new FiltersConfigurer(FilterComposer.composeFilters(
-                        List.of(
-                                new JwtTokenFilterSequenceImpl(jwtTokenProvider, strategy),
-                                new ChatAuthorizationFilterSequenceImpl(chatService),
-                                new AuthenticationFilterSequenceImpl(userDetailsService)
-                        ),
-                        permittedList
-                )));
+                .apply(new FiltersConfigurer(filterComposer));
         return http;
     }
 
@@ -126,4 +105,5 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 }

@@ -3,7 +3,6 @@ package com.leopold.modules.security.composer;
 import com.leopold.modules.security.composer.context.ComposerContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.GenericFilterBean;
 
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -25,13 +23,9 @@ import java.util.NoSuchElementException;
 public class FilterComposer extends OncePerRequestFilter {
     private final List<FilterSequence> filters;
     private final List<String> permitted;
-    private FilterComposer(List<FilterSequence> filters, List<String> permitted) {
+    public FilterComposer(List<FilterSequence> filters, List<String> permitted) {
         this.filters = filters;
         this.permitted = permitted;
-    }
-
-    public static GenericFilterBean composeFilters(List<FilterSequence> filters, List<String> permitted) {
-        return new FilterComposer(filters, permitted);
     }
 
     @Override

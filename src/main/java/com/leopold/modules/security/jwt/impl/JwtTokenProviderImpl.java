@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 
 import javax.crypto.SecretKey;
+import javax.naming.AuthenticationException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public String generateAccess(String refresh) {
+    public String generateAccess(String refresh) throws AuthenticationException {
         Jws<Claims> refreshClaims = getClaims(refresh);
         Claims claims = Jwts.claims().setId(refreshClaims.getBody().getId());
         Optional<RefreshTokenEntity> entity = refreshTokenRepository.findByRefresh(refresh);
@@ -76,13 +77,13 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public boolean validateAccess(String access) {
+    public boolean validateAccess(String access) throws AuthenticationException {
         String refresh = getRefreshFromAccess(access).get().getRefresh();
         return validateRefresh(refresh);
     }
 
     @Override
-    public boolean validateRefresh(String refresh) {
+    public boolean validateRefresh(String refresh) throws AuthenticationException {
         String lookup = refresh.length() > 500 ? refresh.substring(0, 500) : refresh;
         Optional<RefreshTokenEntity> refreshTokenEntity = refreshTokenRepository.findByRefresh(lookup);
         if (refreshTokenEntity.isEmpty()) return false;
@@ -93,12 +94,18 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public Jws<Claims> getClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+    public Jws<Claims> getClaims(String token) throws AuthenticationException {
+        try {
+            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+        }
+        catch (Exception ex) {
+            throw new AuthenticationException(ex.getMessage());
+        }
+
     }
 
     @Override
-    public Optional<RefreshTokenEntity> getRefreshFromAccess(String access) {
+    public Optional<RefreshTokenEntity> getRefreshFromAccess(String access) throws AuthenticationException {
         Jws<Claims> claims = getClaims(access);
         return refreshTokenRepository.findByTokenId(getTokenId(claims));
     }
@@ -109,7 +116,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public String getAppRolesFromAccess(Jws<Claims> claims) {
+    public String getAppRolesFromAccess(Jws<Claims> claims) throws AuthenticationException {
         Jws<Claims> refreshClaims = getRefreshClaimsFromAccessClaims(claims);
         return getAppRolesFromRefresh(refreshClaims);
     }
@@ -129,7 +136,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         return roles.stream().map(AppRoleEntity::getRole).collect(Collectors.toList());
     }
 
-    private Jws<Claims> getRefreshClaimsFromAccessClaims(Jws<Claims> claims) {
+    private Jws<Claims> getRefreshClaimsFromAccessClaims(Jws<Claims> claims) throws AuthenticationException {
         String refresh = refreshTokenRepository.findByTokenId(getTokenId(claims)).get().getRefresh();
         return getClaims(refresh);
     }

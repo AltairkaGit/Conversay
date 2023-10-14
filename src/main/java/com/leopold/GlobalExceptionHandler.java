@@ -27,7 +27,6 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({
-            IllegalArgumentException.class,
             AuthenticationException.class,
             CredentialException.class,
             SignatureException.class,
@@ -46,6 +45,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         FileIsTooGreatException.class,
         UserNotInTheChatException.class,
         UserAlreadyInTheChatException.class,
+        IllegalArgumentException.class
     })
     public ResponseEntity<String> handleWrongEmailException(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);

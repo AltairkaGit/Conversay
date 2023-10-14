@@ -1,11 +1,13 @@
-package com.leopold.modules.security.jwt.impl;
+package com.leopold.modules.security.tokenExtractor;
 
-import com.leopold.modules.security.jwt.ExtractTokenStrategy;
+import com.leopold.modules.security.tokenExtractor.ExtractTokenStrategy;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.stereotype.Component;
 
 import java.util.Enumeration;
 
-public class ExtractTokenHeadersStrategy implements ExtractTokenStrategy {
+@Component
+class ExtractTokenHeadersStrategy implements ExtractTokenStrategy {
     @Override
     public String extractToken(HttpServletRequest req) {
         Enumeration<String> headers = req.getHeaderNames();

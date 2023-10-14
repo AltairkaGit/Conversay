@@ -1,5 +1,7 @@
 package com.leopold.config;
 
+import com.leopold.modules.chat.ws.ChatAuthInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -11,6 +13,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Order(3)
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    private final ChatAuthInterceptor chatHandshakeInterceptor;
+
+    @Autowired
+    public WebSocketConfig(ChatAuthInterceptor chatHandshakeInterceptor) {
+        this.chatHandshakeInterceptor = chatHandshakeInterceptor;
+    }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -21,8 +29,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry
-                .addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3000")
-                .withSockJS();
+                .addEndpoint("/ws/chat/{chatId}/{userId}")
+                .setAllowedOrigins("*")
+                .addInterceptors(chatHandshakeInterceptor);
     }
 }

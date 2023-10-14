@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.CookieValue;
 
 @Controller
 public class ChatMessageControllerV2 {
-    private final JwtTokenProvider jwtTokenProvider;
     private final ChatService chatService;
     private final UserService userService;
     private final MessageResponseMapper messageResponseMapper;
@@ -26,14 +25,12 @@ public class ChatMessageControllerV2 {
     private final SimpMessagingTemplate simpMessagingTemplate;
     @Autowired
     public ChatMessageControllerV2(
-            JwtTokenProvider jwtTokenProvider,
             ChatService chatService,
             UserService userService,
             MessageResponseMapper messageResponseMapper,
             MessageService messageService,
             SimpMessagingTemplate simpMessagingTemplate
     ) {
-        this.jwtTokenProvider = jwtTokenProvider;
         this.chatService = chatService;
         this.userService = userService;
         this.messageResponseMapper = messageResponseMapper;
@@ -41,17 +38,14 @@ public class ChatMessageControllerV2 {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    @MessageMapping("/chat/{chatId}")
-    //@PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Participant.name())")
+    @MessageMapping("/chat/{chatId}/{userId}")
     public MessageResponseDto sendMessage(
             @DestinationVariable("chatId") String chatIdParam,
-            @CookieValue("Authorization") String access,
+            @DestinationVariable("userId") String userIdParam,
             MessageResponseDto message
     ) {
-        if (!jwtTokenProvider.validateAccess(access)) throw new SecurityException("token is not valid");
-        Long userId = jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(access));
+        Long userId = Long.valueOf(userIdParam);
         Long chatId = Long.valueOf(chatIdParam);
-        if (!chatService.checkUserInChat(chatId, userId)) throw new SecurityException("you are not in the chat");
         ChatEntity chat = chatService.getById(chatId);
         UserEntity me = userService.getUserById(userId);
 

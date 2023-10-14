@@ -40,7 +40,11 @@ public class JwtLoginServiceImpl implements LoginService {
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) throw new CredentialException("username or password is wrong");
         String refresh = jwtTokenProvider.generateRefresh(user.getUserId(), user.getRoles());
         jwtTokenProvider.createRefresh(user.getUserId(), refresh);
-        String access = jwtTokenProvider.generateAccess(refresh);
+        String access = null;
+        try {
+            access = jwtTokenProvider.generateAccess(refresh);
+        } catch (AuthenticationException ignored) {
+        }
         return new TokensResponseDto(access, refresh);
     }
 
@@ -61,9 +65,9 @@ public class JwtLoginServiceImpl implements LoginService {
     }
 
     @Override
-    public TokensResponseDto refreshToken(String refreshOld) throws CredentialException {
+    public TokensResponseDto refreshToken(String refreshOld) throws AuthenticationException {
         Optional<RefreshTokenEntity> token = refreshTokenRepository.findByRefresh(refreshOld);
-        if (token.isEmpty()) throw new CredentialException("login again, please");
+        if (token.isEmpty()) throw new AuthenticationException("login again, please");
         UserEntity user = userService.getUserById(jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(refreshOld)));
         String refresh = jwtTokenProvider.generateRefresh(user.getUserId(), user.getRoles());
         updateRefresh(token.get(), refresh);

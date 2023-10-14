@@ -1,6 +1,5 @@
 package com.leopold.modules.login.controller;
 
-import com.leopold.modules.login.dto.AccessTokenDto;
 import com.leopold.modules.login.dto.LoginRequestDto;
 import com.leopold.modules.login.dto.RefreshTokenDto;
 import com.leopold.modules.login.dto.TokensResponseDto;
@@ -8,7 +7,6 @@ import com.leopold.modules.login.service.LoginService;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -33,13 +31,11 @@ public class LoginRestControllerV2 {
      *
      * @param loginRequestDto username and password
      * @return code 200 and access, refresh tokens if ok
-     * @throws CredentialException returns 401 if token is not ok
+     * @throws CredentialException returns 401 if login or password is incorrect
      */
     @PostMapping(value="/login")
     @Operation(summary = "[Public url] username and password login, returns access and refresh token if ok, 401, 500 otherwise")
     public ResponseEntity<TokensResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) throws CredentialException {
-        System.out.println("New query");
-        System.out.println(loginRequestDto.toString());
         UserEntity user = userService.getUserByUsername(loginRequestDto.getUsername());
         return ResponseEntity.ok(loginService.jwtLoginUsernamePassword(user, loginRequestDto.getPassword()));
     }
@@ -85,7 +81,7 @@ public class LoginRestControllerV2 {
      */
     @PostMapping(value="/refresh")
     @Operation(summary = "[Public url] return 200 and two tokens if ok, 401, 500 otherwise")
-    public ResponseEntity<TokensResponseDto> refreshAccessToken(@RequestBody RefreshTokenDto dto) throws CredentialException {
+    public ResponseEntity<TokensResponseDto> refreshAccessToken(@RequestBody RefreshTokenDto dto) throws AuthenticationException {
         TokensResponseDto tokens = loginService.refreshToken(dto.getRefresh());
         return ResponseEntity.ok(tokens);
     }

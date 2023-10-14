@@ -6,24 +6,25 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.naming.AuthenticationException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Transactional
 public interface JwtTokenProvider {
-    long EXPIRED_ACCESS_MS = 30 * 24 * 60 * 1000;
-    long EXPIRED_REFRESH_MS = 365 * 24 * 60 * 1000;
-    String generateAccess(String refresh);
+    long EXPIRED_ACCESS_MS = 30L * 24 * 60 * 60 * 1000;
+    long EXPIRED_REFRESH_MS = 365L * 24 * 60 * 60 * 1000;
+    String generateAccess(String refresh) throws AuthenticationException;
     String generateRefresh(Long userId, List<AppRoleEntity> roles);
     RefreshTokenEntity createRefresh(Long userId, String refresh);
-    boolean validateAccess(String access);
-    boolean validateRefresh(String refresh);
-    Jws<Claims> getClaims(String token);
-    Optional<RefreshTokenEntity> getRefreshFromAccess(String access);
+    boolean validateAccess(String access) throws AuthenticationException;
+    boolean validateRefresh(String refresh) throws AuthenticationException;
+    Jws<Claims> getClaims(String token) throws AuthenticationException;
+    Optional<RefreshTokenEntity> getRefreshFromAccess(String access) throws AuthenticationException;
     Date getExpiration(Jws<Claims> claims);
     Long getUserId(Jws<Claims> claims);
     Long getTokenId(Jws<Claims> claims);
     String getAppRolesFromRefresh(Jws<Claims> claims);
-    String getAppRolesFromAccess(Jws<Claims> claims);
+    String getAppRolesFromAccess(Jws<Claims> claims) throws AuthenticationException;
 }
