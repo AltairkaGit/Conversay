@@ -5,6 +5,8 @@ import com.leopold.modules.file.exception.FileIsTooGreatException;
 import com.leopold.modules.file.repos.FileRepository;
 import com.leopold.modules.file.service.FileService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +25,8 @@ public class FileServiceImpl implements FileService {
     private String hostname;
     @Value("${upload.path}")
     private String uploadPath;
+    @Value("${upload.workdir}")
+    private String uploadWorkdir;
     private static final Long MAX_FILE_SIZE_BYTES = 1024 * 1024 * 35L;
     private static final String DEFAULT_FILE_NAME = "file_";
     private final FileRepository fileRepository;
@@ -55,12 +59,11 @@ public class FileServiceImpl implements FileService {
 
         String ext = origFileName.substring(lastPointIdx + 1);
         String fileName = DEFAULT_FILE_NAME + UUID.randomUUID() + UUID.randomUUID() + '.' + ext;
-        Path workdir = Paths.get(".").toAbsolutePath();
-        Path dest = Paths.get(workdir.toString(), uploadPath, fileName);
         try {
+            Path dest = Paths.get(uploadWorkdir, uploadPath, fileName);
             file.transferTo(dest);
         } catch (IOException e) {
-            throw new MultipartException("internal saving error");
+            throw new MultipartException("Saving error");
         }
 
         FileEntity fileEntity = new FileEntity();

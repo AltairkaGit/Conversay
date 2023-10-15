@@ -29,20 +29,6 @@ services:
       - 80
     volumes:
       - /home/k-admin/convy/:/app/
-  server_tls:
-    build:
-      context: .
-      dockerfile: DockerfileTls
-    ports:
-      - "46878:443"
-    depends_on:
-      - db
-    networks:
-      - netgt
-    expose:
-      - 443
-    volumes:
-      - /home/k-admin/convy/:/app/
 networks:
   netgt:
     driver: bridge
