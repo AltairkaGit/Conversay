@@ -63,7 +63,7 @@ public class FileServiceImpl implements FileService {
             Path dest = Paths.get(uploadWorkdir, uploadPath, fileName);
             file.transferTo(dest);
         } catch (IOException e) {
-            throw new MultipartException("Saving error");
+            throw new MultipartException("Saving on server error");
         }
 
         FileEntity fileEntity = new FileEntity();
