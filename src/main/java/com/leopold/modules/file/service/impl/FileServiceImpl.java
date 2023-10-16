@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Service
 public class FileServiceImpl implements FileService {
-    @Value("${hostname}")
+    @Value("${hostnm}")
     private String hostname;
     @Value("${upload.path}")
     private String uploadPath;
@@ -106,9 +106,6 @@ public class FileServiceImpl implements FileService {
         if (hostname.startsWith("/")) sb.append(hostname.substring(1));
         else sb.append(hostname);
         if (!uploadPath.startsWith("/")) sb.append("/");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.out.println(hostname);
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         sb.append(uploadPath)
             .append("/")
             .append(filename);
