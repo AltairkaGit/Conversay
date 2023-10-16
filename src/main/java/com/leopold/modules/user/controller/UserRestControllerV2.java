@@ -45,51 +45,50 @@ public class UserRestControllerV2 {
 
     @PutMapping(value= "/profilePicture")
     @Operation(summary = "upload a multipart file, 200 and FileResponseDto if ok, 400, 500 otherwise")
-    public ResponseEntity<UserProfileResponseDto> updateProfilePicture(
+    public ResponseEntity<MyProfileDto> updateProfilePicture(
             @RequestAttribute("reqUserId") Long userId,
             @RequestPart("file") MultipartFile file
     ) {
         FileEntity fileEntity = fileService.uploadFile(file);
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updateProfilePicture(user, fileEntity);
-        UserProfileResponseDto responseDto = userProfileResponseMapper.convert(updatedUser);
+        MyProfileDto responseDto = userProfileResponseMapper.convertMyProfile(updatedUser);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @PutMapping(value= "/email")
     @Operation(summary = "update email")
-    public ResponseEntity<UserProfileResponseDto> updateEmail(
+    public ResponseEntity<MyProfileDto> updateEmail(
             @RequestAttribute("reqUserId") Long userId,
             @RequestBody UserUpdateEmailDto dto
     ) {
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updateEmail(user, dto.getEmail());
-        UserProfileResponseDto responseDto = userProfileResponseMapper.convert(updatedUser);
+        MyProfileDto responseDto = userProfileResponseMapper.convertMyProfile(updatedUser);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @PutMapping(value= "/username")
     @Operation(summary = "update username")
-    public ResponseEntity<UserProfileResponseDto> updateUsername(
+    public ResponseEntity<MyProfileDto> updateUsername(
             @RequestAttribute("reqUserId") Long userId,
             @RequestBody UserUpdateUsernameDto dto
     ) {
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updateUsername(user, dto.getUsername());
-        UserProfileResponseDto responseDto = userProfileResponseMapper.convert(updatedUser);
+        MyProfileDto responseDto = userProfileResponseMapper.convertMyProfile(updatedUser);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @PutMapping(value= "/password")
     @Operation(summary = "update password")
-    public ResponseEntity<UserProfileResponseDto> updateUser(
+    public ResponseEntity<Void> updateUser(
             @RequestAttribute("reqUserId") Long userId,
             @RequestBody UserUpdatePasswordDto dto
     ) {
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updatePassword(user, dto.getPassword());
-        UserProfileResponseDto responseDto = userProfileResponseMapper.convert(updatedUser);
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping(value= "")
