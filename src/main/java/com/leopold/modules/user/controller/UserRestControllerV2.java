@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v2/user")
@@ -43,14 +44,14 @@ public class UserRestControllerV2 {
     }
 
     @PutMapping(value= "/profilePicture")
-    @Operation(summary = "update profile picture, require upload a file on server and send a link")
+    @Operation(summary = "upload a multipart file, 200 and FileResponseDto if ok, 400, 500 otherwise")
     public ResponseEntity<UserProfileResponseDto> updateProfilePicture(
             @RequestAttribute("reqUserId") Long userId,
-            @RequestBody UserUpdateProfilePictureDto dto
+            @RequestPart("file") MultipartFile file
     ) {
+        FileEntity fileEntity = fileService.uploadFile(file);
         UserEntity user = userService.getUserById(userId);
-        FileEntity uploadingPicture = fileService.getFile(dto.getPictureUrlOnServer());
-        UserEntity updatedUser = userService.updateProfilePicture(user, uploadingPicture);
+        UserEntity updatedUser = userService.updateProfilePicture(user, fileEntity);
         UserProfileResponseDto responseDto = userProfileResponseMapper.convert(updatedUser);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
