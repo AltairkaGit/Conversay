@@ -102,13 +102,16 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String composeUrl(String filename) {
-        StringBuilder sb = new StringBuilder("http:/");
-        if (!hostname.startsWith("/")) sb.append("/");
-        sb.append(hostname);
+        StringBuilder sb = new StringBuilder("http://");
+        if (hostname.startsWith("/")) sb.append(hostname.substring(1));
+        else sb.append(hostname);
         if (!uploadPath.startsWith("/")) sb.append("/");
-        sb.append(uploadPath);
-        sb.append("/");
-        sb.append(filename);
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.out.println(hostname);
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        sb.append(uploadPath)
+            .append("/")
+            .append(filename);
         return sb.toString();
     }
 }
