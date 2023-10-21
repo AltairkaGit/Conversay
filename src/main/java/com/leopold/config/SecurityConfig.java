@@ -45,6 +45,7 @@ public class SecurityConfig {
             "/swagger-ui/index.html",
             "/swagger-ui/index.html/**",
 
+            "/ws/**",
             "/app/**"
     };
     public final static List<String> permittedList = Arrays.asList(permitted);

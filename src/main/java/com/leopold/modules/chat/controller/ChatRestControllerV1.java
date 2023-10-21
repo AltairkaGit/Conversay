@@ -4,11 +4,11 @@ import com.leopold.modules.chat.dto.ChatResponseDto;
 import com.leopold.modules.chat.dto.CreateGroupChatRequestDto;
 import com.leopold.modules.chat.dto.MessageResponseDto;
 import com.leopold.modules.chat.dto.RemoveUsersFromChatRequestDto;
+import com.leopold.modules.chat.dto.mapper.MessageMapper;
 import com.leopold.modules.chat.dto.mapper.RemoveUsersFromChatMapper;
 import com.leopold.modules.chat.exception.UserNotInTheChatException;
 import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.chat.dto.mapper.ChatResponseMapper;
-import com.leopold.modules.chat.dto.mapper.MessageResponseMapper;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.chat.entity.ChatEntity;
 import com.leopold.modules.chat.entity.MessageEntity;
@@ -23,13 +23,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Set;
 
 @RestController
@@ -39,7 +36,7 @@ public class ChatRestControllerV1 {
     private final UserService userService;
     private final MessageService messageService;
     private final ChatResponseMapper chatResponseMapper;
-    private final MessageResponseMapper messageResponseMapper;
+    private final MessageMapper messageResponseMapper;
     private final UserProfileResponseMapper userProfileResponseMapper;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final JwtTokenProvider jwtTokenProvider;
@@ -51,7 +48,7 @@ public class ChatRestControllerV1 {
             UserService userService,
             MessageService messageService,
             ChatResponseMapper chatResponseMapper,
-            MessageResponseMapper messageResponseMapper,
+            MessageMapper messageResponseMapper,
             UserProfileResponseMapper userProfileResponseMapper,
             SimpMessagingTemplate simpMessagingTemplate,
             JwtTokenProvider jwtTokenProvider, RemoveUsersFromChatMapper removeUsersFromChatMapper) {

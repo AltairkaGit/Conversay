@@ -3,23 +3,12 @@ package com.leopold.modules.chat.dto;
 import java.sql.Timestamp;
 import java.util.List;
 
-public class MessageResponseDto {
-    private Long messageId;
+public class MessageWebsocketDto {
     private Timestamp sendTimestamp;
     private String content;
-    private Long chatId;
     private Long senderId;
     private Long replyId;
-    private String replyContent;
-    private List<String> fileUrls;
-
-    public Long getMessageId() {
-        return messageId;
-    }
-
-    public void setMessageId(Long messageId) {
-        this.messageId = messageId;
-    }
+    private List<Long> fileIds;
 
     public Timestamp getSendTimestamp() {
         return sendTimestamp;
@@ -35,14 +24,6 @@ public class MessageResponseDto {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public Long getChatId() {
-        return chatId;
-    }
-
-    public void setChatId(Long chatId) {
-        this.chatId = chatId;
     }
 
     public Long getSenderId() {
@@ -61,19 +42,11 @@ public class MessageResponseDto {
         this.replyId = replyId;
     }
 
-    public String getReplyContent() {
-        return replyContent;
+    public List<Long> getFileIds() {
+        return fileIds;
     }
 
-    public void setReplyContent(String replyContent) {
-        this.replyContent = replyContent;
-    }
-
-    public List<String> getFileUrls() {
-        return fileUrls;
-    }
-
-    public void setFileUrls(List<String> fileUrls) {
-        this.fileUrls = fileUrls;
+    public void setFileIds(List<Long> fileIds) {
+        this.fileIds = fileIds;
     }
 }

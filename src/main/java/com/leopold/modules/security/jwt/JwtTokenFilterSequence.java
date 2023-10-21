@@ -37,8 +37,8 @@ public class JwtTokenFilterSequence implements FilterSequence {
         if (access == null ) throw new AuthenticationException("no authorization header");
         if (access.isEmpty()) throw new AuthenticationException("empty access token");
         if (!jwtTokenProvider.validateAccess(access)) throw new AuthenticationException("access token is not ok");
-        context.put(ComposerContextEnum.UserId, jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(access)));
-        Long userId = jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(access));
+        context.put(ComposerContextEnum.UserId, jwtTokenProvider.getUserId(access));
+        Long userId = jwtTokenProvider.getUserId(access);
         request.setAttribute("reqUserId", userId);
         request.setAttribute("accessToken", access);
     }

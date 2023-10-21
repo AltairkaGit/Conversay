@@ -28,7 +28,7 @@ public abstract class ChatResponseMapper {
     protected MessageService messageService;
 
     @Autowired
-    protected MessageResponseMapper messageResponseMapper;
+    protected MessageMapper messageResponseMapper;
 
     @Autowired
     protected UserProfileResponseMapper userProfileResponseMapper;

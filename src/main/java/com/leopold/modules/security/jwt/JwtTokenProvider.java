@@ -4,6 +4,7 @@ import com.leopold.modules.appRole.entity.AppRoleEntity;
 import com.leopold.modules.security.entity.RefreshTokenEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.AuthenticationException;
@@ -22,9 +23,9 @@ public interface JwtTokenProvider {
     boolean validateRefresh(String refresh) throws AuthenticationException;
     Jws<Claims> getClaims(String token) throws AuthenticationException;
     Optional<RefreshTokenEntity> getRefreshFromAccess(String access) throws AuthenticationException;
-    Date getExpiration(Jws<Claims> claims);
-    Long getUserId(Jws<Claims> claims);
-    Long getTokenId(Jws<Claims> claims);
+    Date getExpiration(String token) throws AuthenticationException;
+    Long getUserId(String token) throws AuthenticationException;
+    Long getTokenId(String access) throws AuthenticationException;
     String getAppRolesFromRefresh(Jws<Claims> claims);
     String getAppRolesFromAccess(Jws<Claims> claims) throws AuthenticationException;
 }

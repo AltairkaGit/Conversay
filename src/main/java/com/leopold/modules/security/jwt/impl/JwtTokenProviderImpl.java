@@ -8,6 +8,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -122,14 +123,33 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public Long getUserId(Jws<Claims> claims) {
+    public Date getExpiration(String token) throws AuthenticationException {
+        return getExpiration(getClaims(token));
+    }
+
+    @Override
+    public Long getUserId(String token) throws AuthenticationException {
+        return getUserId(getClaims(token));
+    }
+
+    @Override
+    public Long getTokenId(String access) throws AuthenticationException {
+        return getTokenId(getClaims(access));
+    }
+
+    private Long getUserId(Jws<Claims> claims) {
         String id = claims.getBody().getId();
         return Long.parseLong(id);
     }
 
-    @Override
-    public Date getExpiration(Jws<Claims> claims) {
+    private Date getExpiration(Jws<Claims> claims) {
         return claims.getBody().getExpiration();
+    }
+
+    private Long getTokenId(Jws<Claims> claims) {
+        String tokenId = String.valueOf(claims.getBody().get("TokenId"));
+        double d = Double.parseDouble(tokenId);
+        return (long)d;
     }
 
     private static List<String> mapAppRolesToStrings (List<AppRoleEntity> roles) {
@@ -141,10 +161,5 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         return getClaims(refresh);
     }
 
-    @Override
-    public Long getTokenId(Jws<Claims> claims) {
-        String tokenId = String.valueOf(claims.getBody().get("TokenId"));
-        double d = Double.parseDouble(tokenId);
-        return (long)d;
-    }
+
 }

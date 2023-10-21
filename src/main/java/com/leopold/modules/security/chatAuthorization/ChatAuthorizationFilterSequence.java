@@ -22,10 +22,8 @@ import java.util.List;
 @Component
 @Order(2)
 public class ChatAuthorizationFilterSequence implements FilterSequence {
-    private final ChatService chatService;
     private final ChatAuthorizationService chatAuthorizationService;
-    public ChatAuthorizationFilterSequence(ChatService chatService, ChatAuthorizationService chatAuthorizationService) {
-        this.chatService = chatService;
+    public ChatAuthorizationFilterSequence(ChatAuthorizationService chatAuthorizationService) {
         this.chatAuthorizationService = chatAuthorizationService;
     }
 
@@ -44,8 +42,7 @@ public class ChatAuthorizationFilterSequence implements FilterSequence {
         Long chatId = chatAuthorizationService.extractChatIdFromURI(httpServletRequest.getRequestURI());
         List<GrantedAuthority> chatAuthorities = new ArrayList<>();
         if (userId != null && chatId != null) {
-            boolean userInChat = chatService.checkUserInChat(chatId, userId);
-            if (userInChat) {
+            if (chatAuthorizationService.checkUserInChat(chatId, userId)) {
                 SimpleGrantedAuthority participant = new SimpleGrantedAuthority(ChatRoles.Participant.toString());
                 chatAuthorities.add(participant);
             }

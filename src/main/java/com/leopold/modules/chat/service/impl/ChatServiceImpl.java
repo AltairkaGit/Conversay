@@ -10,6 +10,7 @@ import com.leopold.lib.validator.impl.MinLengthValidation;
 import com.leopold.lib.validator.impl.ValidatorImpl;
 import com.leopold.modules.chat.entity.ChatUserEntity;
 import com.leopold.modules.file.entity.FileEntity;
+import com.leopold.modules.security.chatAuthorization.ChatAuthorizationService;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.chat.repos.ChatRepository;
 import com.leopold.modules.chat.repos.ChatUserRepository;
@@ -21,11 +22,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class ChatServiceImpl implements ChatService {
+public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     private final ChatRepository chatRepository;
     private final ChatUserRepository chatUserRepository;
     private final UserRepository userRepository;
@@ -160,4 +163,15 @@ public class ChatServiceImpl implements ChatService {
                 ));
         nameValidator.validate("ChatName", name);
     }
+    @Override
+    public Long extractChatIdFromURI(String uri) {
+        Matcher matcher = chatIdPattern.matcher(uri);
+        if (matcher.find()) {
+            String chatIdStr = matcher.group(1);
+            return Long.parseLong(chatIdStr);
+        }
+        return null;
+    }
+
+    private static final Pattern chatIdPattern = Pattern.compile("/chat/(\\d+)");
 }

@@ -36,6 +36,13 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public FileEntity getFile(Long id) {
+        Optional<FileEntity> file = fileRepository.findById(id);
+        if (file.isEmpty()) throw new NoSuchElementException("file with this id is not present");
+        return file.get();
+    }
+
+    @Override
     public FileEntity getFile(String url) {
         int lastSlash = url.lastIndexOf('/');
         if (lastSlash == -1 || lastSlash + 1 == url.length()) throw new NoSuchElementException("wrong url");

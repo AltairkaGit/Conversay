@@ -68,7 +68,7 @@ public class JwtLoginServiceImpl implements LoginService {
     public TokensResponseDto refreshToken(String refreshOld) throws AuthenticationException {
         Optional<RefreshTokenEntity> token = refreshTokenRepository.findByRefresh(refreshOld);
         if (token.isEmpty()) throw new AuthenticationException("login again, please");
-        UserEntity user = userService.getUserById(jwtTokenProvider.getUserId(jwtTokenProvider.getClaims(refreshOld)));
+        UserEntity user = userService.getUserById(jwtTokenProvider.getUserId(refreshOld));
         String refresh = jwtTokenProvider.generateRefresh(user.getUserId(), user.getRoles());
         updateRefresh(token.get(), refresh);
         String access = jwtTokenProvider.generateAccess(refresh);

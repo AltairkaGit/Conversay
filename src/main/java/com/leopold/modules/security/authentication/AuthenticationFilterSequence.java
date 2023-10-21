@@ -7,35 +7,32 @@ import com.leopold.modules.security.users.UserDetailsService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.naming.AuthenticationException;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Component
 @Order(3)
 public class AuthenticationFilterSequence implements FilterSequence {
-    private final UserDetailsService userDetailsService;
+    private final AuthenticationService authenticationService;
 
-    public AuthenticationFilterSequence(
-            UserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
+    @Autowired
+    public AuthenticationFilterSequence(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, ComposerContext context)
             throws ServletException, IOException, AuthenticationException, NoSuchElementException {
-        UserDetails userDetails = userDetailsService.loadByUserId(context.get(ComposerContextEnum.UserId));
-        Collection<? extends  GrantedAuthority> authorities = userDetails.getAuthorities();
-        authorities.addAll(context.get(ComposerContextEnum.ChatAuthorities));
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, "", authorities));
+        Long userId = context.get(ComposerContextEnum.UserId);
+        List<GrantedAuthority> chatAuthorities = context.get(ComposerContextEnum.ChatAuthorities);
+        SecurityContextHolder.getContext().setAuthentication(authenticationService.getAuthentication(userId, chatAuthorities));
     }
 }

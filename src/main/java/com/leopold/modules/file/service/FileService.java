@@ -10,6 +10,7 @@ import java.util.Base64;
 @Transactional
 public interface FileService {
     FileEntity getFile(String url);
+    FileEntity getFile(Long id);
     FileEntity uploadFile(MultipartFile picture);
 
     /**

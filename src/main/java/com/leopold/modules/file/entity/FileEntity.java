@@ -2,10 +2,13 @@ package com.leopold.modules.file.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import com.leopold.modules.chat.entity.MessageEntity;
 import com.leopold.modules.server.entity.ServerEntity;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.chat.entity.ChatEntity;
 import jakarta.persistence.*;
+
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -36,6 +39,10 @@ public class FileEntity {
     @OneToOne(mappedBy = "chatPicture", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonBackReference
     private ChatEntity chatPicture;
+
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "attachedFiles", cascade = CascadeType.ALL)
+    @JsonBackReference
+    private List<MessageEntity> attachedMessages;
 
     public Long getFileId() {
         return fileId;
@@ -88,8 +95,17 @@ public class FileEntity {
     public UserEntity getProfilePictureOfUser() {
         return profilePictureOfUser;
     }
+
     public void setProfilePictureOfUser(UserEntity profilePictureOfUser) {
         this.profilePictureOfUser = profilePictureOfUser;
+    }
+
+    public List<MessageEntity> getAttachedMessages() {
+        return attachedMessages;
+    }
+
+    public void setAttachedMessages(List<MessageEntity> attachedMessages) {
+        this.attachedMessages = attachedMessages;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.leopold.config;
 
-import com.leopold.modules.chat.ws.ChatAuthInterceptor;
+import com.leopold.modules.security.websocket.ConnectionInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -13,24 +13,29 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Order(3)
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    private final ChatAuthInterceptor chatHandshakeInterceptor;
+    private final ConnectionInterceptor connectionInterceptor;
 
     @Autowired
-    public WebSocketConfig(ChatAuthInterceptor chatHandshakeInterceptor) {
-        this.chatHandshakeInterceptor = chatHandshakeInterceptor;
+    public WebSocketConfig(ConnectionInterceptor connectionInterceptor) {
+        this.connectionInterceptor = connectionInterceptor;
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.setApplicationDestinationPrefixes("/app");
-        config.enableSimpleBroker("/chat");
+        config.setApplicationDestinationPrefixes("/app")
+                .enableSimpleBroker("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry
-                .addEndpoint("/ws/chat/{chatId}/{userId}")
-                .setAllowedOrigins("*")
-                .addInterceptors(chatHandshakeInterceptor);
+                .addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
+                .addInterceptors(connectionInterceptor);
+        registry
+                .addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
+                .addInterceptors(connectionInterceptor)
+                .withSockJS();
     }
 }
