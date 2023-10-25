@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.Set;
 
 @Transactional
 public interface MessageService {
@@ -17,6 +18,8 @@ public interface MessageService {
     Optional<MessageEntity> getMessageById(Long messageId);
     Optional<MessageEntity> getLastMessage(ChatEntity chat);
     Page<MessageEntity> getAllChatMessages(ChatEntity chat, Pageable pageable);
+    Page<MessageEntity> getAllChatMessagesBefore(ChatEntity chat, Timestamp origin, Pageable pageable);
+    Set<MessageEntity> getAllChatMessagesWithTimeInterval(ChatEntity chat, Timestamp start, Timestamp end);
     Page<MessageEntity> getAllSenderChatMessages(ChatEntity chat, UserEntity sender, Pageable pageable);
     Page<MessageEntity> getAllChatMessagesWithTimeInterval(ChatEntity chat, Timestamp start, Timestamp end, Pageable pageable);
     Page<MessageEntity> getAllSenderChatMessagesWithTimeInterval(ChatEntity chat, UserEntity sender, Timestamp start, Timestamp end, Pageable pageable);

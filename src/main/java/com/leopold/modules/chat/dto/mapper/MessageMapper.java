@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 public abstract class MessageMapper {
     @Autowired
     protected MessageService messageService;
-
     @Autowired
     protected FileService fileService;
 

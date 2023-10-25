@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.leopold.modules.appRole.entity.AppRoleEntity;
 import com.leopold.modules.chat.entity.ChatUserEntity;
 import com.leopold.modules.chat.entity.MessageEntity;
+import com.leopold.modules.chat.entity.MessageSeenEntity;
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.friend.entity.FriendsEntity;
 import com.leopold.modules.server.entity.ServerUserEntity;
@@ -59,6 +60,10 @@ public class UserEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     @JsonBackReference
     private Set<ChatUserEntity> myChats;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @JsonBackReference
+    private Set<MessageSeenEntity> seenMessages;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "sender")
     @JsonBackReference

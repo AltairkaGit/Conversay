@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -23,7 +24,6 @@ public class MessageServiceImpl implements MessageService {
     public MessageServiceImpl(MessageRepository messageRepository) {
         this.messageRepository = messageRepository;
     }
-
 
     @Override
     public MessageEntity createMessage(ChatEntity chat, UserEntity sender, MessageEntity messageFromDto) {
@@ -61,9 +61,19 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public Page<MessageEntity> getAllChatMessagesBefore(ChatEntity chat, Timestamp origin, Pageable pageable) {
+        return messageRepository.findAllByChatAndSendTimestampBeforeOrderBySendTimestampDesc(chat, origin, pageable);
+    }
+
+    @Override
     public Page<MessageEntity> getAllSenderChatMessages(ChatEntity chat, UserEntity sender, Pageable pageable) {
         pageable = getPageableForMessages(pageable);
         return messageRepository.findAllByChatAndSender(chat, sender, pageable);
+    }
+
+    @Override
+    public Set<MessageEntity> getAllChatMessagesWithTimeInterval(ChatEntity chat, Timestamp start, Timestamp end) {
+        return messageRepository.findAllByChatAndSendTimestampBetweenOrderBySendTimestampDesc(chat, start, end);
     }
 
     @Override

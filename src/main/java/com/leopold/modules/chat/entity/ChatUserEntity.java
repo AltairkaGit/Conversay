@@ -25,9 +25,7 @@ public class ChatUserEntity {
     public ChatUserEntity() {
     }
     public ChatUserEntity(ChatEntity chat, UserEntity user) {
-        id = new ChatUserKey();
-        id.setChatId(chat.getChatId());
-        id.setUserId(user.getUserId());
+        id = ChatUserKey.valueOf(user.getUserId(), chat.getChatId());
         setUser(user);
         setChat(chat);
     }

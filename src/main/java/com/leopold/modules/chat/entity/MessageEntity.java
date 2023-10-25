@@ -1,5 +1,6 @@
 package com.leopold.modules.chat.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.user.entity.UserEntity;
@@ -40,6 +41,11 @@ public class MessageEntity {
             inverseJoinColumns = {@JoinColumn(name = "file_id", referencedColumnName = "file_id")})
     @JsonManagedReference
     private List<FileEntity> attachedFiles;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "message")
+    @JsonBackReference
+    private Set<MessageSeenEntity> lookedUsers;
+
     public Long getMessageId() {
         return messageId;
     }
@@ -94,6 +100,10 @@ public class MessageEntity {
 
     public void setAttachedFiles(List<FileEntity> attachedFiles) {
         this.attachedFiles = attachedFiles;
+    }
+
+    public Set<MessageSeenEntity> getLookedUsers() {
+        return lookedUsers;
     }
 
     @Override

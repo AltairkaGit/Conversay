@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 
 @Repository
 public interface ChatUserRepository extends JpaRepository<ChatUserEntity, ChatUserKey> {
-
     Stream<ChatUserEntity> findAllByChat(ChatEntity chat);
     Page<ChatUserEntity> findAllByChat(ChatEntity chat, Pageable pageable);
     Page<ChatUserEntity> findAllByUser(UserEntity user, Pageable pageable);

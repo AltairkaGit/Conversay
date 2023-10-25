@@ -9,6 +9,7 @@ import com.leopold.lib.validator.impl.MaxLengthValidation;
 import com.leopold.lib.validator.impl.MinLengthValidation;
 import com.leopold.lib.validator.impl.ValidatorImpl;
 import com.leopold.modules.chat.entity.ChatUserEntity;
+import com.leopold.modules.chat.repos.MessageRepository;
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.security.chatAuthorization.ChatAuthorizationService;
 import com.leopold.modules.user.entity.UserEntity;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,12 +34,14 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     private final ChatRepository chatRepository;
     private final ChatUserRepository chatUserRepository;
     private final UserRepository userRepository;
+    private final MessageRepository messageRepository;
 
     @Autowired
-    public ChatServiceImpl(ChatRepository chatRepository, ChatUserRepository chatUserRepository, UserRepository userRepository) {
+    public ChatServiceImpl(ChatRepository chatRepository, ChatUserRepository chatUserRepository, UserRepository userRepository, MessageRepository messageRepository) {
         this.chatRepository = chatRepository;
         this.chatUserRepository = chatUserRepository;
         this.userRepository = userRepository;
+        this.messageRepository = messageRepository;
     }
 
     @Override
@@ -115,6 +119,11 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     @Override
     public Stream<UserEntity> getChatUsers(ChatEntity chat) {
         return chatUserRepository.findChatUsers(chat);
+    }
+
+    @Override
+    public long countUnreadMessages(ChatEntity chat, UserEntity user, Timestamp origin) {
+        return messageRepository.countUnreadMessages(chat.getChatId(), user.getUserId(), origin);
     }
 
     @Override

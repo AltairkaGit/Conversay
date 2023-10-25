@@ -13,7 +13,6 @@ import com.leopold.modules.chat.entity.MessageEntity;
 import com.leopold.modules.chat.exception.UserNotInTheChatException;
 import com.leopold.modules.chat.service.ChatService;
 import com.leopold.modules.chat.service.MessageService;
-import com.leopold.modules.security.jwt.JwtTokenProvider;
 import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.user.entity.UserEntity;
@@ -24,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,10 +35,8 @@ public class ChatRestControllerV2 {
     private final UserService userService;
     private final MessageService messageService;
     private final ChatResponseMapper chatResponseMapper;
-    private final MessageMapper messageResponseMapper;
+    private final MessageMapper messageMapper;
     private final UserProfileResponseMapper userProfileResponseMapper;
-    private final SimpMessagingTemplate simpMessagingTemplate;
-    private final JwtTokenProvider jwtTokenProvider;
     private final RemoveUsersFromChatMapper removeUsersFromChatMapper;
 
     @Autowired
@@ -49,18 +45,14 @@ public class ChatRestControllerV2 {
             UserService userService,
             MessageService messageService,
             ChatResponseMapper chatResponseMapper,
-            MessageMapper messageResponseMapper,
-            UserProfileResponseMapper userProfileResponseMapper,
-            SimpMessagingTemplate simpMessagingTemplate,
-            JwtTokenProvider jwtTokenProvider, RemoveUsersFromChatMapper removeUsersFromChatMapper) {
+            MessageMapper messageMapper, UserProfileResponseMapper userProfileResponseMapper,
+            RemoveUsersFromChatMapper removeUsersFromChatMapper) {
         this.chatService = chatService;
         this.userService = userService;
         this.messageService = messageService;
         this.chatResponseMapper = chatResponseMapper;
-        this.messageResponseMapper = messageResponseMapper;
+        this.messageMapper = messageMapper;
         this.userProfileResponseMapper = userProfileResponseMapper;
-        this.simpMessagingTemplate = simpMessagingTemplate;
-        this.jwtTokenProvider = jwtTokenProvider;
         this.removeUsersFromChatMapper = removeUsersFromChatMapper;
     }
 
@@ -138,7 +130,7 @@ public class ChatRestControllerV2 {
     ) {
         ChatEntity chat = chatService.getById(chatId);
         Page<MessageEntity> messages = messageService.getAllChatMessages(chat, pageable);
-        Page<MessageResponseDto> res = messageResponseMapper.convertPage(messages);
+        Page<MessageResponseDto> res = messageMapper.convertPage(messages);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 

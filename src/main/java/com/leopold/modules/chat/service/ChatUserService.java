@@ -14,7 +14,9 @@ import java.util.stream.Stream;
 public interface ChatUserService {
     @Transactional(readOnly = true)
     Stream<UserEntity> getChatUsers(ChatEntity chat);
+    @Transactional(readOnly = true)
     Page<ChatEntity> getUserChats(UserEntity user, Pageable pageable);
+    @Transactional(readOnly = true)
     Page<UserEntity> getChatUsers(ChatEntity chat, Pageable pageable);
     void addUser(ChatEntity chat, UserEntity user) throws Exception;
     void addUsers(ChatEntity chat, Collection<UserEntity> users);

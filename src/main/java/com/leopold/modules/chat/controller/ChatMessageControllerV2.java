@@ -41,7 +41,7 @@ public class ChatMessageControllerV2 {
     }
 
     @ChatAuthorizationSubscription
-    @SubscribeMapping("/chat/{chatId}/messages")
+    @SubscribeMapping("/queue/chat/{chatId}/messages")
     public void subscribeChat(
             SimpMessageHeaderAccessor accessor,
             @DestinationVariable("chatId") String chatIdParam
@@ -63,7 +63,6 @@ public class ChatMessageControllerV2 {
         MessageEntity messageFromDto = messageMapper.convert(message);
         MessageEntity messageEntity = messageService.createMessage(chat, me, messageFromDto);
         MessageResponseDto handledMessage = messageMapper.convert(messageEntity);
-
-        simpMessagingTemplate.convertAndSend("/app/chat/" + chatId + "/messages", handledMessage.toString());
+        simpMessagingTemplate.convertAndSend("/app/queue/chat/" + chatId + "/messages", handledMessage.toString());
     }
 }

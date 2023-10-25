@@ -5,6 +5,7 @@ import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.user.entity.UserEntity;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 
 @Transactional
@@ -15,4 +16,5 @@ public interface ChatService extends ChatUserService {
     void deleteById(Long chatId);
     void updatePicture(ChatEntity chat, FileEntity picture);
     void updateChatName(ChatEntity chat, String chatName);
+    long countUnreadMessages(ChatEntity chat, UserEntity user, Timestamp origin);
 }
