@@ -17,16 +17,22 @@ import java.util.Set;
 @Repository
 public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     Page<MessageEntity> findAllByChat(ChatEntity chat, Pageable pageable);
-    Page<MessageEntity> findAllByChatAndSender(ChatEntity chat, UserEntity sender, Pageable pageable);
-    Page<MessageEntity> findAllByChatAndSendTimestampBetween(ChatEntity chat, Timestamp start, Timestamp end, Pageable pageable);
-    Page<MessageEntity> findAllByChatAndSenderAndSendTimestampBetween(ChatEntity chat, UserEntity sender, Timestamp start, Timestamp end, Pageable pageable);
+    long countAllByChat(ChatEntity chat);
+    Page<MessageEntity> findAllByChatAndSenderOrderBySendTimestampDesc(ChatEntity chat, UserEntity sender, Pageable pageable);
+    long countAllByChatAndSender(ChatEntity chat, UserEntity sender);
+    Page<MessageEntity> findAllByChatAndSendTimestampBetweenOrderBySendTimestampDesc(ChatEntity chat, Timestamp start, Timestamp end, Pageable pageable);
+    long countAllByChatAndSendTimestampBetween(ChatEntity chat, Timestamp start, Timestamp end);
+    Page<MessageEntity> findAllByChatAndSenderAndSendTimestampBetweenOrderBySendTimestampDesc(ChatEntity chat, UserEntity sender, Timestamp start, Timestamp end, Pageable pageable);
+    long countAllByChatAndSenderAndSendTimestampBetween(ChatEntity chat, UserEntity sender, Timestamp start, Timestamp end);
     Page<MessageEntity> findAllByChatAndSendTimestampBeforeOrderBySendTimestampDesc(ChatEntity chat, Timestamp start, Pageable pageable);
-    @Query("SELECT MAX(mes.sendTimestamp) " +
-            "          FROM MessageEntity mes " +
-            "          WHERE mes.chat.chatId = :chatId ")
+    long countAllByChatAndSendTimestampBefore(ChatEntity chat, Timestamp start);
+    @Query( "SELECT m FROM MessageEntity m " +
+            "WHERE m.chat.chatId = :chatId " +
+            "  AND m.sendTimestamp = (SELECT MAX(mes.sendTimestamp) FROM MessageEntity mes WHERE mes.chat.chatId = :chatId) "
+    )
     Optional<MessageEntity> getLastMessage(@Param("chatId") long chatId);
     Set<MessageEntity> findAllByChatAndSendTimestampBetweenOrderBySendTimestampDesc(ChatEntity chat, Timestamp start, Timestamp end);
-    @Query("SELECT COUNT(DISTINCT mes.messageId) " +
+    @Query("SELECT DISTINCT COUNT(mes.messageId) " +
             "FROM MessageEntity mes " +
             "LEFT JOIN MessageSeenEntity ms ON mes.messageId = ms.message.messageId " +
             "WHERE mes.chat.chatId = :chatId " +

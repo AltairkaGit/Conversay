@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:15
     ports:
-      - "46876:5432"
+      - "46877:5432"
     volumes:
       - /home/k-admin/postgres/convy/data/db/data/:/var/lib/postgresql/data/
     environment:
@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "46877:80"
+      - "46876:80"
     depends_on:
       - db
     networks:
