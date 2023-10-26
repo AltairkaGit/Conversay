@@ -1,6 +1,7 @@
 package com.leopold.modules.chat.service.impl;
 
 import com.leopold.modules.chat.entity.ChatEntity;
+import com.leopold.modules.chat.entity.ChatUserRoleEntity;
 import com.leopold.modules.chat.entity.key.ChatUserKey;
 import com.leopold.modules.chat.exception.UserAlreadyInTheChatException;
 import com.leopold.modules.chat.exception.UserNotInTheChatException;
@@ -9,6 +10,7 @@ import com.leopold.lib.validator.impl.MaxLengthValidation;
 import com.leopold.lib.validator.impl.MinLengthValidation;
 import com.leopold.lib.validator.impl.ValidatorImpl;
 import com.leopold.modules.chat.entity.ChatUserEntity;
+import com.leopold.modules.chat.repos.ChatUserRoleRepository;
 import com.leopold.modules.chat.repos.MessageRepository;
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.security.chatAuthorization.ChatAuthorizationService;
@@ -17,10 +19,12 @@ import com.leopold.modules.chat.repos.ChatRepository;
 import com.leopold.modules.chat.repos.ChatUserRepository;
 import com.leopold.modules.user.repos.UserRepository;
 import com.leopold.modules.chat.service.ChatService;
+import com.leopold.roles.ChatRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -35,13 +39,21 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     private final ChatUserRepository chatUserRepository;
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final ChatUserRoleRepository chatUserRoleRepository;
 
     @Autowired
-    public ChatServiceImpl(ChatRepository chatRepository, ChatUserRepository chatUserRepository, UserRepository userRepository, MessageRepository messageRepository) {
+    public ChatServiceImpl(
+            ChatRepository chatRepository,
+            ChatUserRepository chatUserRepository,
+            UserRepository userRepository,
+            MessageRepository messageRepository,
+            ChatUserRoleRepository chatUserRoleRepository
+    ) {
         this.chatRepository = chatRepository;
         this.chatUserRepository = chatUserRepository;
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
+        this.chatUserRoleRepository = chatUserRoleRepository;
     }
 
     @Override
@@ -52,7 +64,8 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     }
 
     @Override
-    public ChatEntity create(String name, Collection<UserEntity> users) {
+    @Transactional
+    public ChatEntity create(String name, UserEntity creator, Collection<UserEntity> users) {
         ChatEntity chat = new ChatEntity();
         if (name != null) {
             validateName(name);
@@ -64,8 +77,30 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
             chat.setChatName(chatName);
         }
         chatRepository.saveAndFlush(chat);
+
         addUsers(chat, users);
+
+        ChatUserRoleEntity adminRole = new ChatUserRoleEntity(creator, chat, ChatRole.Admin);
+        chatUserRoleRepository.save(adminRole);
+
         return chat;
+    }
+
+    @Override
+    public List<ChatRole> getUserChatRoles(ChatEntity chat, UserEntity user) {
+        return chatUserRoleRepository.findChatUserRoles(chat.getChatId(), user.getUserId());
+    }
+
+    @Override
+    public List<ChatRole> getUserChatRoles(Long chatId, Long userId) {
+        return chatUserRoleRepository.findChatUserRoles(chatId, userId);
+    }
+
+    @Override
+    public void addChatUserRole(ChatEntity chat, UserEntity user, ChatRole role) {
+        if (!checkUserInChat(chat, user)) throw new IllegalArgumentException("user not in the chat");
+        ChatUserRoleEntity adminRole = new ChatUserRoleEntity(user, chat, role);
+        chatUserRoleRepository.save(adminRole);
     }
 
     @Override
@@ -148,7 +183,9 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     @Override
     public void removeUser(ChatEntity chat, UserEntity user) throws UserNotInTheChatException {
         if (!checkUserInChat(chat, user)) throw new UserNotInTheChatException(user.getUsername(), chat.getChatId());
-        else chatUserRepository.deleteById(ChatUserKey.valueOf(user.getUserId(), chat.getChatId()));
+
+        chatUserRoleRepository.deleteAllByUserAndChat(user, chat);
+        chatUserRepository.deleteById(ChatUserKey.valueOf(user.getUserId(), chat.getChatId()));
         if (chat.getChatType().equals(ChatEntity.ChatType.direct)) {
             chatRepository.delete(chat);
         } else if (chat.getChatType().equals(ChatEntity.ChatType.conversation) && chatUserRepository.countByChat(chat) == 0) {
@@ -163,11 +200,8 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
 
     @Override
     public void removeUsers(ChatEntity chat, Collection<UserEntity> users) {
-        Set<ChatUserEntity> chatUsers = users.stream()
-                .map(user -> chatUserRepository.findByChatAndUser(chat, user).get())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        chatUserRepository.deleteAll(chatUsers);
+        chatUserRoleRepository.deleteAllByUserInAndChat(users, chat);
+        chatUserRepository.deleteAllByUserInAndChat(users, chat);
     }
 
     private void validateName(String name) {

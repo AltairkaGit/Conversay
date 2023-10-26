@@ -70,7 +70,7 @@ public class ChatRestControllerV2 {
 
     @Operation(summary = "Get a chat by id, you should be a participant")
     @GetMapping(value="/{chatId}")
-    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Participant.name())")
+    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Participant.name())")
     public ResponseEntity<ChatResponseDto> getChat(
             @RequestAttribute("reqUserId") Long userId,
             @PathVariable Long chatId
@@ -88,15 +88,17 @@ public class ChatRestControllerV2 {
             @RequestBody CreateGroupChatRequestDto dto
     ) {
         Set<UserEntity> users = userService.getUsersByUsername(dto.getUsernames());
-        ChatEntity chat = chatService.create(dto.getName(), users);
         UserEntity me = userService.getUserById(userId);
+        ChatEntity chat = chatService.create(dto.getName(), me, users);
         ChatResponseDto res = chatResponseMapper.convert(chat, me);
         return ResponseEntity.ok(res);
     }
 
+    //TODO: добавление ролей
+
     @DeleteMapping("/{chatId}")
     @Operation(summary = "leave a chat if you are a participant")
-    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Participant.name())")
+    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Participant.name())")
     public ResponseEntity<Void> leaveChat(
             @RequestAttribute("reqUserId") Long myId,
             @PathVariable Long chatId
@@ -108,7 +110,7 @@ public class ChatRestControllerV2 {
     }
     @DeleteMapping("/{chatId}/users")
     @Operation(summary = "kick users from a chat, you should be admin or moderator")
-    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Admin.name()) || hasAuthority(T(com.leopold.roles.ChatRoles).Moderator.name())")
+    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Admin.name()) || hasAuthority(T(com.leopold.roles.ChatRole).Moderator.name())")
     public ResponseEntity<Void> removeFromChat(
             @RequestAttribute("reqUserId") Long myId,
             @PathVariable Long chatId,
@@ -122,7 +124,7 @@ public class ChatRestControllerV2 {
 
     @GetMapping(value="/{chatId}/messages")
     @Operation(summary = "get messages from the chat, you should be a participant")
-    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Participant.name())")
+    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Participant.name())")
     public ResponseEntity<Page<MessageResponseDto>> getChatMessages(
             @RequestAttribute("reqUserId") Long userId,
             @PathVariable Long chatId,
@@ -136,7 +138,7 @@ public class ChatRestControllerV2 {
 
     @GetMapping(value="/{chatId}/users")
     @Operation(summary = "get users of the chat, you should be a participant")
-    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRoles).Participant.name())")
+    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Participant.name())")
     public ResponseEntity<Page<UserProfileResponseDto>> getChatUsers(
             @RequestAttribute("reqUserId") Long userId,
             @PathVariable Long chatId,

@@ -1,16 +1,17 @@
 package com.leopold.modules.chat.entity;
 
+import com.leopold.modules.chat.entity.key.ChatUserRoleKey;
 import com.leopold.modules.user.entity.UserEntity;
-import com.leopold.modules.chat.entity.key.ChatUserKey;
+import com.leopold.roles.ChatRole;
 import jakarta.persistence.*;
 
 import java.util.Objects;
 
 @Entity
-@Table(name = "chat_user")
-public class ChatUserEntity {
+@Table(name="chat_user_role")
+public class ChatUserRoleEntity {
     @EmbeddedId
-    private ChatUserKey id;
+    private ChatUserRoleKey id;
 
     @ManyToOne
     @MapsId("userId")
@@ -22,20 +23,23 @@ public class ChatUserEntity {
     @JoinColumn(name = "chat_id")
     private ChatEntity chat;
 
-    public ChatUserEntity() {
+    @Column(name = "chat_role")
+    private ChatRole role;
+
+    public ChatUserRoleEntity() {
     }
 
-    public ChatUserEntity(ChatEntity chat, UserEntity user) {
-        id = ChatUserKey.valueOf(user.getUserId(), chat.getChatId());
-        setUser(user);
-        setChat(chat);
+    public ChatUserRoleEntity(UserEntity user, ChatEntity chat, ChatRole role) {
+        this.id = ChatUserRoleKey.ValueOf(chat.getChatId(), user.getUserId(), role);
+        this.user = user;
+        this.chat = chat;
     }
 
-    public ChatUserKey getId() {
+    public ChatUserRoleKey getId() {
         return id;
     }
 
-    public void setId(ChatUserKey id) {
+    public void setId(ChatUserRoleKey id) {
         this.id = id;
     }
 
@@ -55,16 +59,24 @@ public class ChatUserEntity {
         this.chat = chat;
     }
 
+    public ChatRole getRole() {
+        return role;
+    }
+
+    public void setRole(ChatRole role) {
+        this.role = role;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ChatUserEntity that = (ChatUserEntity) o;
-        return Objects.equals(id, that.id) && Objects.equals(user, that.user) && Objects.equals(chat, that.chat);
+        ChatUserRoleEntity that = (ChatUserRoleEntity) o;
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, chat);
+        return Objects.hash(id);
     }
 }

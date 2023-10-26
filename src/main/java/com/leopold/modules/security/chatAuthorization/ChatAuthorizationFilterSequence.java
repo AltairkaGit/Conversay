@@ -1,10 +1,9 @@
 package com.leopold.modules.security.chatAuthorization;
 
-import com.leopold.modules.chat.service.ChatService;
 import com.leopold.modules.security.composer.FilterSequence;
 import com.leopold.modules.security.composer.context.ComposerContext;
 import com.leopold.modules.security.composer.context.ComposerContextEnum;
-import com.leopold.roles.ChatRoles;
+import com.leopold.roles.ChatRole;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -18,6 +17,7 @@ import javax.naming.AuthenticationException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Order(2)
@@ -30,9 +30,7 @@ public class ChatAuthorizationFilterSequence implements FilterSequence {
     /** Фильтр рассчитам на то что первичная авторизация пользователя прошла
      *  Тащим UserId из атрибутов запроса
      *  Тащим ChatId из URI
-     *  Проверяем что пользователь в чате
-     *  Закидываем в контекст новую Authentication
-     *  с дополнительными правами
+     *  Закидываем в контекст лист GrantedAuthorities чата
     **/
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, ComposerContext context)
@@ -40,13 +38,11 @@ public class ChatAuthorizationFilterSequence implements FilterSequence {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         Long userId = context.get(ComposerContextEnum.UserId);
         Long chatId = chatAuthorizationService.extractChatIdFromURI(httpServletRequest.getRequestURI());
-        List<GrantedAuthority> chatAuthorities = new ArrayList<>();
-        if (userId != null && chatId != null) {
-            if (chatAuthorizationService.checkUserInChat(chatId, userId)) {
-                SimpleGrantedAuthority participant = new SimpleGrantedAuthority(ChatRoles.Participant.toString());
-                chatAuthorities.add(participant);
-            }
-        }
-        context.put(ComposerContextEnum.ChatAuthorities, chatAuthorities);
+        if (userId == null || chatId == null) return;
+        List<ChatRole> roles = chatAuthorizationService.getUserChatRoles(chatId, userId);
+        roles.add(ChatRole.Participant);
+        context.put(ComposerContextEnum.ChatAuthorities, roles.stream().map(role -> new SimpleGrantedAuthority(role.toString())).collect(Collectors.toList()));
+
+
     }
 }

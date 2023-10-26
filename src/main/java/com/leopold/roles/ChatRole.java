@@ -1,6 +1,6 @@
 package com.leopold.roles;
 
-public enum ChatRoles {
+public enum ChatRole {
     Participant,
     Admin,
     Moderator

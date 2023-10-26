@@ -32,8 +32,8 @@ public class MessageSeenEntity {
 
     public MessageSeenEntity(MessageEntity message, UserEntity user) {
         id = MessageSeenKey.valueOf(user.getUserId(), message.getMessageId());
-        setUser(user);
-        setMessage(message);
+        this.user = user;
+        this.message = message;
     }
 
     public MessageSeenKey getId() {

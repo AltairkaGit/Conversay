@@ -57,9 +57,4 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<String> handleNoSuchElementException(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NO_CONTENT);
     }
-
-    /*@ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleException(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }*/
 }

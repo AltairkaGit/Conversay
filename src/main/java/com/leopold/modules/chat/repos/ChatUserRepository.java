@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -29,7 +30,7 @@ public interface ChatUserRepository extends JpaRepository<ChatUserEntity, ChatUs
     Optional<ChatUserEntity> findByChatAndUser(ChatEntity chat, UserEntity user);
     long countByChat(ChatEntity chat);
     default Stream<UserEntity> findChatUsers(ChatEntity chat) {
-        return  findAllByChat(chat)
-                .map(ChatUserEntity::getUser);
+        return  findAllByChat(chat).map(ChatUserEntity::getUser);
     }
+    void deleteAllByUserInAndChat(Collection<UserEntity> users, ChatEntity chat);
 }
