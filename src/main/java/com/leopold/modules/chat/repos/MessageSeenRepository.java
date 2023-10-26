@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 @Repository
 public interface MessageSeenRepository extends JpaRepository<MessageSeenEntity, MessageSeenKey> {
     Stream<MessageSeenEntity> findAllByMessage(MessageEntity message);
-
     @Query("SELECT ms.user FROM MessageSeenEntity ms WHERE ms.message = :message")
     Page<UserEntity> findAllByMessage(MessageEntity message, Pageable pageable);
     long countByMessage(MessageEntity message);

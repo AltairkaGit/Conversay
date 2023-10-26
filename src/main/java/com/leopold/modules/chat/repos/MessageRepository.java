@@ -21,7 +21,10 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     Page<MessageEntity> findAllByChatAndSendTimestampBetween(ChatEntity chat, Timestamp start, Timestamp end, Pageable pageable);
     Page<MessageEntity> findAllByChatAndSenderAndSendTimestampBetween(ChatEntity chat, UserEntity sender, Timestamp start, Timestamp end, Pageable pageable);
     Page<MessageEntity> findAllByChatAndSendTimestampBeforeOrderBySendTimestampDesc(ChatEntity chat, Timestamp start, Pageable pageable);
-    Optional<MessageEntity> findTopByChatOrderBySendTimestampDesc(ChatEntity chat);
+    @Query("SELECT MAX(mes.sendTimestamp) " +
+            "          FROM MessageEntity mes " +
+            "          WHERE mes.chat.chatId = :chatId ")
+    Optional<MessageEntity> getLastMessage(@Param("chatId") long chatId);
     Set<MessageEntity> findAllByChatAndSendTimestampBetweenOrderBySendTimestampDesc(ChatEntity chat, Timestamp start, Timestamp end);
     @Query("SELECT COUNT(DISTINCT mes.messageId) " +
             "FROM MessageEntity mes " +

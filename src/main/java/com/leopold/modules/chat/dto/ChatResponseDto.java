@@ -9,6 +9,9 @@ public class ChatResponseDto {
     private String chatPictureUrl;
     @Schema
     private ChatEntity.ChatType chatType;
+    private MessageResponseDto lastMessage;
+    private long unreadMessages;
+    private long chatUsersCount;
 
     public Long getChatId() {
         return chatId;
@@ -40,5 +43,29 @@ public class ChatResponseDto {
 
     public void setChatType(ChatEntity.ChatType chatType) {
         this.chatType = chatType;
+    }
+
+    public MessageResponseDto getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(MessageResponseDto lastMessage) {
+        this.lastMessage = lastMessage;
+    }
+
+    public long getUnreadMessages() {
+        return unreadMessages;
+    }
+
+    public void setUnreadMessages(long unreadMessages) {
+        this.unreadMessages = unreadMessages;
+    }
+
+    public long getChatUsersCount() {
+        return chatUsersCount;
+    }
+
+    public void setChatUsersCount(long chatUsersCount) {
+        this.chatUsersCount = chatUsersCount;
     }
 }

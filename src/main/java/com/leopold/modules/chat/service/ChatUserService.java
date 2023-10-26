@@ -18,6 +18,9 @@ public interface ChatUserService {
     Page<ChatEntity> getUserChats(UserEntity user, Pageable pageable);
     @Transactional(readOnly = true)
     Page<UserEntity> getChatUsers(ChatEntity chat, Pageable pageable);
+
+    @Transactional(readOnly = true)
+    long countChatUsers(ChatEntity chat);
     void addUser(ChatEntity chat, UserEntity user) throws Exception;
     void addUsers(ChatEntity chat, Collection<UserEntity> users);
     void removeUser(ChatEntity chat, UserEntity user) throws UserNotInTheChatException;

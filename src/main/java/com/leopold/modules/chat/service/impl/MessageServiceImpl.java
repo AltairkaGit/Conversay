@@ -51,7 +51,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Optional<MessageEntity> getLastMessage(ChatEntity chat) {
-        return messageRepository.findTopByChatOrderBySendTimestampDesc(chat);
+        return messageRepository.getLastMessage(chat.getChatId());
     }
 
     @Override

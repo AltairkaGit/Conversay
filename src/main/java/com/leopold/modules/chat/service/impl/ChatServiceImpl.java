@@ -157,6 +157,11 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     }
 
     @Override
+    public long countChatUsers(ChatEntity chat) {
+        return chatUserRepository.countByChat(chat);
+    }
+
+    @Override
     public void removeUsers(ChatEntity chat, Collection<UserEntity> users) {
         Set<ChatUserEntity> chatUsers = users.stream()
                 .map(user -> chatUserRepository.findByChatAndUser(chat, user).get())
