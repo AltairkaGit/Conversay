@@ -23,7 +23,7 @@ public class ChatUserRoleEntity {
     @JoinColumn(name = "chat_id")
     private ChatEntity chat;
 
-    @Column(name = "chat_role")
+    @Enumerated(EnumType.STRING)
     private ChatRole role;
 
     public ChatUserRoleEntity() {
