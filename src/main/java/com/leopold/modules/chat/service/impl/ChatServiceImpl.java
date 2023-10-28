@@ -178,20 +178,77 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     /** Удаляет участников из чата
      * Если это был direct, то при выходе одного чела чат удаляется автоматически
      * Если групповой, то чат удаляется если в нем не осталось участников
-     *
+     * -------
+     * Если удаляется админ, но назначается новый сначала из модераторов, потом из обычных пользователей
     **/
     @Override
+    @Transactional
     public void removeUser(ChatEntity chat, UserEntity user) throws UserNotInTheChatException {
         if (!checkUserInChat(chat, user)) throw new UserNotInTheChatException(user.getUsername(), chat.getChatId());
 
-        chatUserRoleRepository.deleteAllByUserAndChat(user, chat);
         chatUserRepository.deleteById(ChatUserKey.valueOf(user.getUserId(), chat.getChatId()));
+        //auto delete chat if empty
         if (chat.getChatType().equals(ChatEntity.ChatType.direct)) {
             chatRepository.delete(chat);
-        } else if (chat.getChatType().equals(ChatEntity.ChatType.conversation) && chatUserRepository.countByChat(chat) == 0) {
-            chatRepository.delete(chat);
+        } else if (chat.getChatType().equals(ChatEntity.ChatType.conversation)) {
+            if (chatUserRepository.countByChat(chat) > 0) {
+                //if admin leave chat we should pick a new one
+                Optional<ChatUserRoleEntity> admin = chatUserRoleRepository.findTopByChatAndRole(chat, ChatRole.Admin);
+                if (admin.isEmpty()) {
+                    Optional<ChatUserRoleEntity> moder = chatUserRoleRepository.findTopByChatAndRole(chat, ChatRole.Moderator);
+                    if (moder.isPresent()) setNewChatAdminDeleteOld(chat, moder.get().getUser());
+                    else {
+                        UserEntity participant = chatUserRepository.findTopByChat(chat).get().getUser();
+                        setNewChatAdminDeleteOld(chat, participant);
+                    }
+                }
+            }
+            //no more users in the chat
+            else {
+                chatRepository.delete(chat);
+            }
         }
     }
+
+    @Override
+    public UserEntity getChatAdmin(ChatEntity chat) {
+        return chatUserRoleRepository.findTopByChatAndRole(chat, ChatRole.Admin).get().getUser();
+    }
+
+    @Override
+    public Set<UserEntity> getChatModerators(ChatEntity chat) {
+        return chatUserRoleRepository.findAllByChatAndRole(chat, ChatRole.Moderator).stream().map(ChatUserRoleEntity::getUser).collect(Collectors.toSet());
+    }
+
+    @Override
+    @Transactional
+    public void setNewChatAdminDeleteOld(ChatEntity chat, UserEntity user) {
+        Optional<ChatUserRoleEntity> admin = chatUserRoleRepository.findTopByChatAndRole(chat, ChatRole.Admin);
+        admin.ifPresent(chatUserRoleRepository::delete);
+        //deleting old user roles
+        chatUserRoleRepository.deleteAllByUserAndChat(user, chat);
+        //set up new chat admin role
+        ChatUserRoleEntity nextAdmin = new ChatUserRoleEntity(user, chat, ChatRole.Admin);
+        chatUserRoleRepository.saveAndFlush(nextAdmin);
+    }
+
+    @Override
+    public void addChatModerator(ChatEntity chat, UserEntity user) {
+        if (Objects.equals(user, getChatAdmin(chat)))
+            throw new IllegalArgumentException("the user is admin, can't make it moder");
+        ChatUserRoleEntity moder = new ChatUserRoleEntity(user, chat, ChatRole.Moderator);
+        chatUserRoleRepository.saveAndFlush(moder);
+    }
+
+    @Override
+    public void removeChatModerator(ChatEntity chat, UserEntity user) {
+        Optional<ChatUserRoleEntity> moder = chatUserRoleRepository.findByChatAndUserAndRole(chat, user, ChatRole.Moderator);
+        if (moder.isEmpty())
+            throw new IllegalArgumentException("the user is not moderator");
+        chatUserRoleRepository.delete(moder.get());
+    }
+
+
 
     @Override
     public long countChatUsers(ChatEntity chat) {
@@ -200,7 +257,9 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
 
     @Override
     public void removeUsers(ChatEntity chat, Collection<UserEntity> users) {
-        chatUserRoleRepository.deleteAllByUserInAndChat(users, chat);
+        UserEntity admin = getChatAdmin(chat);
+        if (users.contains(admin))
+            throw new IllegalArgumentException("you can't remove admin from the chat, re pick users to remove");
         chatUserRepository.deleteAllByUserInAndChat(users, chat);
     }
 

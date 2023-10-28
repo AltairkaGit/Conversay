@@ -1,13 +1,17 @@
 package com.leopold.modules.chat.service;
 
 import com.leopold.modules.chat.entity.ChatEntity;
+import com.leopold.modules.chat.entity.ChatUserEntity;
 import com.leopold.modules.chat.exception.UserNotInTheChatException;
 import com.leopold.modules.user.entity.UserEntity;
+import com.leopold.roles.ChatRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Transactional
@@ -18,6 +22,16 @@ public interface ChatUserService {
     Page<ChatEntity> getUserChats(UserEntity user, Pageable pageable);
     @Transactional(readOnly = true)
     Page<UserEntity> getChatUsers(ChatEntity chat, Pageable pageable);
+
+
+    void addChatModerator(ChatEntity chat, UserEntity user);
+    void removeChatModerator(ChatEntity chat, UserEntity user);
+
+    UserEntity getChatAdmin(ChatEntity chat);
+    Set<UserEntity> getChatModerators(ChatEntity chat);
+    void setNewChatAdminDeleteOld(ChatEntity chat, UserEntity user);
+
+    List<ChatRole> getUserChatRoles(ChatEntity chat, UserEntity user);
 
     @Transactional(readOnly = true)
     long countChatUsers(ChatEntity chat);

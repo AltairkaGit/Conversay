@@ -32,6 +32,7 @@ public interface ChatUserRepository extends JpaRepository<ChatUserEntity, ChatUs
     )
     Page<ChatEntity> findUserChats(@Param("user") UserEntity user, Pageable pageable);
     Optional<ChatUserEntity> findByChatAndUser(ChatEntity chat, UserEntity user);
+    Optional<ChatUserEntity> findTopByChat(ChatEntity chat);
     long countByChat(ChatEntity chat);
     default Stream<UserEntity> findChatUsers(ChatEntity chat) {
         return  findAllByChat(chat).map(ChatUserEntity::getUser);
