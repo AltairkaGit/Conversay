@@ -49,6 +49,11 @@ public class JwtLoginServiceImpl implements LoginService {
     }
 
     @Override
+    public boolean checkPassword(UserEntity user, String rawPassword) {
+        return passwordEncoder.matches(rawPassword, user.getPassword());
+    }
+
+    @Override
     public void logoutSession(String access) throws AuthenticationException {
         Optional<RefreshTokenEntity> refresh = jwtTokenProvider.getRefreshFromAccess(access);
         if (refresh.isEmpty()) throw new AuthenticationException("token is not valid anymore");

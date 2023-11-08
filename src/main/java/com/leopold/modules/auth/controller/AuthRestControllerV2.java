@@ -1,6 +1,7 @@
 package com.leopold.modules.auth.controller;
 
 import com.leopold.modules.auth.dto.AuthRequestDto;
+import com.leopold.modules.auth.dto.CheckUsernameIsFreeDto;
 import com.leopold.modules.login.dto.TokensResponseDto;
 import com.leopold.modules.auth.dto.mapper.AuthRequestMapper;
 import com.leopold.modules.user.entity.UserEntity;
@@ -36,12 +37,14 @@ public class AuthRestControllerV2 {
         return ResponseEntity.ok(tokens);
     }
 
-    @GetMapping("/username")
-    public ResponseEntity<Void> checkUsernameIsFree(@RequestParam(name="username", defaultValue="") String username) {
-        boolean isFree = authService.checkUsernameIsFree(username);
+    @PostMapping("/username")
+    public ResponseEntity<Void> checkUsernameIsFree(@RequestBody CheckUsernameIsFreeDto dto) {
+        boolean isFree = authService.checkUsernameIsFree(dto.getUsername());
         if (isFree) return ResponseEntity.ok().build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
+
+
 
     @ExceptionHandler({CredentialException.class})
     public ResponseEntity<String> handleTakenCredentials(Exception ex) {

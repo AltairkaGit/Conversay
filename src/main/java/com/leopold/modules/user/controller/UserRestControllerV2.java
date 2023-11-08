@@ -2,6 +2,7 @@ package com.leopold.modules.user.controller;
 
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.file.service.FileService;
+import com.leopold.modules.login.service.LoginService;
 import com.leopold.modules.user.dto.*;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.user.entity.UserEntity;
@@ -19,12 +20,14 @@ public class UserRestControllerV2 {
     private final UserService userService;
     private final FileService fileService;
     private final UserProfileResponseMapper userProfileResponseMapper;
+    private final LoginService loginService;
 
     @Autowired
-    public UserRestControllerV2(UserService userService, FileService fileService, UserProfileResponseMapper userProfileResponseMapper) {
+    public UserRestControllerV2(UserService userService, FileService fileService, UserProfileResponseMapper userProfileResponseMapper, LoginService loginService) {
         this.userService = userService;
         this.fileService = fileService;
         this.userProfileResponseMapper = userProfileResponseMapper;
+        this.loginService = loginService;
     }
 
     @GetMapping("")
@@ -88,6 +91,18 @@ public class UserRestControllerV2 {
     ) {
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updatePassword(user, dto.getPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(value= "/password")
+    @Operation(summary = "check you know your password")
+    public ResponseEntity<Void> checkPassword(
+            @RequestAttribute("reqUserId") Long userId,
+            @RequestBody CheckPasswordDto dto
+    ) {
+        UserEntity user = userService.getUserById(userId);
+        boolean isPasswordsMatches = loginService.checkPassword(user, dto.getPassword());
+        if (!isPasswordsMatches) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         return ResponseEntity.ok().build();
     }
 
