@@ -2,14 +2,17 @@ package com.leopold.modules.chat.controller;
 
 import com.leopold.modules.chat.dto.MessageResponseDto;
 import com.leopold.modules.chat.dto.MessageWebsocketDto;
+import com.leopold.modules.chat.dto.ReadChatMessagesDto;
 import com.leopold.modules.chat.dto.mapper.MessageMapper;
 import com.leopold.modules.chat.entity.ChatEntity;
 import com.leopold.modules.chat.entity.MessageEntity;
 import com.leopold.modules.chat.service.ChatService;
+import com.leopold.modules.chat.service.MessageSeenService;
 import com.leopold.modules.chat.service.MessageService;
 import com.leopold.modules.security.websocket.ChatAuthorizationSubscription;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -31,6 +34,7 @@ public class ChatMessageControllerV2 {
     private final UserService userService;
     private final MessageMapper messageMapper;
     private final MessageService messageService;
+    private final MessageSeenService messageSeenService;
     private final SimpMessagingTemplate simpMessagingTemplate;
     @Autowired
     public ChatMessageControllerV2(
@@ -38,12 +42,14 @@ public class ChatMessageControllerV2 {
             UserService userService,
             MessageMapper messageMapper,
             MessageService messageService,
+            MessageSeenService messageSeenService,
             SimpMessagingTemplate simpMessagingTemplate
     ) {
         this.chatService = chatService;
         this.userService = userService;
         this.messageMapper = messageMapper;
         this.messageService = messageService;
+        this.messageSeenService = messageSeenService;
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
@@ -75,6 +81,7 @@ public class ChatMessageControllerV2 {
 
     @PutMapping("/api/v2/message")
     @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Participant.name())")
+    @Operation(summary = "update message if you are sender")
     public ResponseEntity<MessageResponseDto> updateMessage(
             @RequestAttribute("reqUserId") Long myId,
             @RequestBody MessageResponseDto message
@@ -86,5 +93,18 @@ public class ChatMessageControllerV2 {
         MessageEntity updatedMessage = messageService.updateMessage(chat, me, messageMapper.convert(message));
         MessageResponseDto updatedMessageDto = messageMapper.convert(updatedMessage, me);
         return ResponseEntity.ok(updatedMessageDto);
+    }
+
+    @PutMapping("/api/v2/messages")
+    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Participant.name())")
+    @Operation(summary="read messages between start(like now) and end(like in the past)")
+    public ResponseEntity<Void> readMessages(
+            @RequestAttribute("reqUserId") Long myId,
+            @RequestBody ReadChatMessagesDto dto
+    ) {
+        UserEntity me = userService.getUserById(myId);
+        ChatEntity chat = chatService.getById(dto.getChatId());
+        messageSeenService.readMessages(chat, me, dto.getStart(), dto.getEnd());
+        return ResponseEntity.ok().build();
     }
 }
