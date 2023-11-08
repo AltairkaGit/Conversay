@@ -176,11 +176,7 @@ public class UserEntity {
         if (obj == null || getClass() != obj.getClass()) return false;
 
         UserEntity user = (UserEntity) obj;
-        return user.getUserId().equals(userId) &&
-                user.getUsername().equals(username) &&
-                user.getEmail().equals(email) &&
-                user.getGender().equals(gender) &&
-                user.getPassword().equals(password);
+        return user.getUserId().equals(userId);
     }
 
     @Override

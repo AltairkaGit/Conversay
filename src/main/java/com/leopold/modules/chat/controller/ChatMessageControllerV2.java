@@ -11,7 +11,6 @@ import com.leopold.modules.security.websocket.ChatAuthorizationSubscription;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Objects;
-import java.util.Optional;
 
 @Controller
 public class ChatMessageControllerV2 {
@@ -71,7 +69,7 @@ public class ChatMessageControllerV2 {
 
         MessageEntity messageFromDto = messageMapper.convert(message);
         MessageEntity messageEntity = messageService.createMessage(chat, me, messageFromDto);
-        MessageResponseDto handledMessage = messageMapper.convert(messageEntity);
+        MessageResponseDto handledMessage = messageMapper.convert(messageEntity, me);
         simpMessagingTemplate.convertAndSend("/app/queue/chat/" + chatId + "/messages", handledMessage.toString());
     }
 
@@ -86,7 +84,7 @@ public class ChatMessageControllerV2 {
         UserEntity me = userService.getUserById(myId);
         ChatEntity chat = chatService.getById(message.getChatId());
         MessageEntity updatedMessage = messageService.updateMessage(chat, me, messageMapper.convert(message));
-        MessageResponseDto updatedMessageDto = messageMapper.convert(updatedMessage);
+        MessageResponseDto updatedMessageDto = messageMapper.convert(updatedMessage, me);
         return ResponseEntity.ok(updatedMessageDto);
     }
 }

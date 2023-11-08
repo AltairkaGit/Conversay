@@ -130,9 +130,10 @@ public class ChatRestControllerV2 {
             @PathVariable Long chatId,
             Pageable pageable
     ) {
+        UserEntity me = userService.getUserById(userId);
         ChatEntity chat = chatService.getById(chatId);
         Page<MessageEntity> messages = messageService.getAllChatMessages(chat, pageable);
-        PageDto<MessageResponseDto> res = PageDto.of(messageMapper.convertPage(messages));
+        PageDto<MessageResponseDto> res = PageDto.of(messageMapper.convertPage(messages, me));
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 

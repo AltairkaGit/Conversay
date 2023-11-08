@@ -99,6 +99,12 @@ public class UserServiceImpl implements UserService, AuthService {
     }
 
     @Override
+    public boolean checkUsernameIsFree(String username) {
+        validateName(username);
+        return userRepository.findByUsername(username).isEmpty();
+    }
+
+    @Override
     public void deleteUser(UserEntity user) {
         userRepository.deleteById(user.getUserId());
     }

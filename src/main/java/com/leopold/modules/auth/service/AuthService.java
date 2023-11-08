@@ -8,4 +8,5 @@ import javax.security.auth.login.CredentialException;
 @Transactional
 public interface AuthService {
     UserEntity registerUser(UserEntity registringUser) throws CredentialException;
+    boolean checkUsernameIsFree(String username);
 }

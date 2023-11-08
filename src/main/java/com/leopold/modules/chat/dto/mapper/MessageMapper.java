@@ -7,8 +7,10 @@ import com.leopold.modules.file.service.FileService;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.chat.entity.MessageEntity;
 import com.leopold.modules.chat.service.MessageService;
+import com.leopold.modules.user.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -26,13 +28,30 @@ public abstract class MessageMapper {
     protected MessageService messageService;
     @Autowired
     protected FileService fileService;
+    @Autowired
+    protected FileResponseMapper fileResponseMapper;
 
-    @Mapping(target = "chatId", source = "chat.chatId")
-    @Mapping(target = "replyId", source = "reply.messageId")
-    @Mapping(target = "replyContent", source = "reply.content")
-    @Mapping(target = "senderId", source = "sender.userId")
-    @Mapping(target = "fileUrls", source = "attachedFiles", qualifiedByName = "getFileUrls")
-    public abstract MessageResponseDto convert(MessageEntity message);
+    public MessageResponseDto convert(MessageEntity message, UserEntity receiver) {
+        MessageResponseDto dto = new MessageResponseDto();
+
+        dto.setChatId(message.getChat().getChatId());
+        dto.setMessageId(message.getMessageId());
+        dto.setContent(message.getContent());
+        dto.setSendTimestamp(message.getSendTimestamp());
+        dto.setIsMine(setIsMine(message, receiver));
+        dto.setSenderId(message.getSender().getUserId());
+        dto.setFileUrls(fileResponseMapper.map(message.getAttachedFiles()));
+
+        MessageEntity reply = message.getReply();
+        if (reply != null) {
+            dto.setReplyId(reply.getMessageId());
+            String replyContent = reply.getContent();
+            int replyContentLen = 35;
+            dto.setReplyContent(replyContent.length() > replyContentLen ? replyContent.substring(0, replyContentLen) : replyContent);
+        }
+
+        return  dto;
+    }
 
     public MessageEntity convert(MessageWebsocketDto dto) {
         MessageEntity message = extractBaseMessageEntity(dto.getContent(), dto.getSendTimestamp(), dto.getReplyId());
@@ -58,9 +77,16 @@ public abstract class MessageMapper {
         return message;
     }
 
-    public abstract List<MessageResponseDto> convertList(List<MessageEntity> messageEntities);
-    public Page<MessageResponseDto> convertPage(Page<MessageEntity> page) {
-        List<MessageResponseDto> list = convertList(page.getContent());
+    @Named("isMineMessage")
+    public boolean setIsMine(MessageEntity message, UserEntity receiver) {
+        return message.getSender().equals(receiver);
+    }
+
+    public List<MessageResponseDto> convertList(List<MessageEntity> messageEntities, UserEntity receiver) {
+        return messageEntities.stream().map(message -> convert(message, receiver)).collect(Collectors.toList());
+    }
+    public Page<MessageResponseDto> convertPage(Page<MessageEntity> page, UserEntity receiver) {
+        List<MessageResponseDto> list = convertList(page.getContent(), receiver);
         return new PageImpl<>(list, page.getPageable(), page.getTotalElements());
     }
 }

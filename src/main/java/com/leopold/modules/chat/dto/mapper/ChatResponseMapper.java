@@ -44,7 +44,7 @@ public abstract class ChatResponseMapper {
         chatResponseDto.setChatType(chat.getChatType());
         chatResponseDto.setChatUsersCount(chatService.countChatUsers(chat));
         chatResponseDto.setUnreadMessages(chatService.countUnreadMessages(chat, me, Timestamp.from(Instant.now())));
-        chatResponseDto.setLastMessage(messageMapper.convert(messageService.getLastMessage(chat).get()));
+        chatResponseDto.setLastMessage(messageMapper.convert(messageService.getLastMessage(chat).get(), me));
 
         // Set chatName and picture depends on type of the chat
         //direct chat

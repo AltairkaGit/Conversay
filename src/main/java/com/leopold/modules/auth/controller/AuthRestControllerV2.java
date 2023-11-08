@@ -36,6 +36,13 @@ public class AuthRestControllerV2 {
         return ResponseEntity.ok(tokens);
     }
 
+    @GetMapping("/username")
+    public ResponseEntity<Void> checkUsernameIsFree(@RequestParam(name="username", defaultValue="") String username) {
+        boolean isFree = authService.checkUsernameIsFree(username);
+        if (isFree) return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
     @ExceptionHandler({CredentialException.class})
     public ResponseEntity<String> handleTakenCredentials(Exception ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
