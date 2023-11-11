@@ -14,6 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/v2/user")
 public class UserRestControllerV2 {
@@ -44,6 +48,14 @@ public class UserRestControllerV2 {
         UserEntity user = userService.getUserById(someUserId);
         UserProfileResponseDto responseDto = userProfileResponseMapper.convert(user);
         return ResponseEntity.ok(responseDto);
+    }
+
+    @PostMapping(value="/profiles")
+    @Operation(summary = "get user profiles by their id")
+    public ResponseEntity<ProfilesResponseDto> getUserProfiles(@RequestBody ProfilesRequestDto dto) {
+        ProfilesResponseDto res = new ProfilesResponseDto();
+        res.setProfiles(userProfileResponseMapper.convertList(new ArrayList<>(userService.getUsersByIds(dto.getIds()))));
+        return ResponseEntity.ok(res);
     }
 
     @PutMapping(value= "/profilePicture")

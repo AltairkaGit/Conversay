@@ -3,6 +3,7 @@ package com.leopold.modules.user.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.leopold.modules.appRole.entity.AppRoleEntity;
+import com.leopold.modules.chat.entity.ChatEntity;
 import com.leopold.modules.chat.entity.ChatUserEntity;
 import com.leopold.modules.chat.entity.MessageEntity;
 import com.leopold.modules.chat.entity.MessageSeenEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "user")
@@ -138,8 +140,8 @@ public class UserEntity {
         return imFriendOf;
     }
 
-    public Set<ChatUserEntity> getMyChats() {
-        return myChats;
+    public Set<ChatEntity> getMyChats() {
+        return myChats.stream().map(ChatUserEntity::getChat).collect(Collectors.toSet());
     }
 
     public Set<MessageEntity> getMessages() {
