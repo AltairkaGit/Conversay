@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService, AuthService {
     }
 
     @Override
-    public UserEntity getUserById(Long id) {
+    public UserEntity getUserById(Long id) throws NoSuchElementException {
         Optional<UserEntity> user = userRepository.findById(id);
         if (user.isEmpty()) throw new NoSuchElementException();
         return user.get();
@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService, AuthService {
     }
 
     @Override
-    public UserEntity getUserByUsername(String userName)  {
+    public UserEntity getUserByUsername(String userName) throws NoSuchElementException {
         Optional<UserEntity> user = userRepository.findByUsername(userName);
         if (user.isEmpty()) throw new NoSuchElementException();
         return user.get();

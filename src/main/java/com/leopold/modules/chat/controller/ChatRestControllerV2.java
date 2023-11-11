@@ -8,11 +8,11 @@ import com.leopold.modules.chat.dto.mapper.MessageMapper;
 import com.leopold.modules.chat.dto.mapper.RemoveUsersFromChatMapper;
 import com.leopold.modules.chat.entity.ChatEntity;
 import com.leopold.modules.chat.entity.MessageEntity;
+import com.leopold.modules.chat.exception.UserAlreadyInTheChatException;
 import com.leopold.modules.chat.exception.UserNotInTheChatException;
 import com.leopold.modules.chat.service.ChatService;
 import com.leopold.modules.chat.service.MessageService;
 import com.leopold.modules.security.chatAuthorization.ChatAuthorizationService;
-import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -84,19 +86,43 @@ public class ChatRestControllerV2 {
     }
 
     @Operation(summary = "create a group chat")
-    @PostMapping("/")
-    public ResponseEntity<ChatResponseDto> createChat(
+    @PostMapping("/group")
+    public ResponseEntity<ChatResponseDto> createGroupChat(
             @RequestAttribute("reqUserId") Long userId,
             @RequestBody CreateGroupChatRequestDto dto
     ) {
         Set<UserEntity> users = userService.getUsersByUsername(dto.getUsernames());
         UserEntity me = userService.getUserById(userId);
-        ChatEntity chat = chatService.create(dto.getName(), me, users);
+        ChatEntity chat = chatService.createGroupChat(dto.getName(), me, users);
         ChatResponseDto res = chatResponseMapper.convert(chat, me);
         return ResponseEntity.ok(res);
     }
 
-    @DeleteMapping("/{chatId}")
+    @Operation(summary = "create a direct chat, 201 if created, 200 if the chat exists, 400 if there is no partner with such username")
+    @PostMapping("/direct")
+    public ResponseEntity<ChatResponseDto> createDirectChat(
+            @RequestAttribute("reqUserId") Long userId,
+            @RequestBody CreateDirectChatRequserDto dto
+    ) throws UserAlreadyInTheChatException {
+        UserEntity partner;
+        try {
+            partner = userService.getUserByUsername(dto.getUsername());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        UserEntity me = userService.getUserById(userId);
+        Optional<ChatEntity> chatEntityOptional = chatService.getDirectByUsers(me, partner);
+        ChatResponseDto res;
+        if (chatEntityOptional.isPresent()) {
+            res = chatResponseMapper.convert(chatEntityOptional.get(), me);
+            return ResponseEntity.ok(res);
+        }
+        ChatEntity chat = chatService.craeteDirectChat(me,partner);
+        res = chatResponseMapper.convert(chat, me);
+        return ResponseEntity.status(HttpStatus.CREATED).body(res);
+    }
+
+    @DeleteMapping("/{chatId}/leave")
     @Operation(summary = "leave a chat if you are a participant")
     @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Participant.name())")
     public ResponseEntity<Void> leaveChat(
@@ -108,6 +134,19 @@ public class ChatRestControllerV2 {
         chatService.removeUser(chat, me);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{chatId}")
+    @Operation(summary = "delete a chat if you are an admin")
+    @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Admin.name())")
+    public ResponseEntity<Void> deleteChat(
+            @RequestAttribute("reqUserId") Long myId,
+            @PathVariable Long chatId
+    ) throws UserNotInTheChatException {
+        ChatEntity chat = chatService.getById(chatId);
+        chatService.delete(chat);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{chatId}/users")
     @Operation(summary = "kick users from a chat, you should be admin or moderator")
     @PreAuthorize("hasAuthority(T(com.leopold.roles.ChatRole).Admin.name()) || hasAuthority(T(com.leopold.roles.ChatRole).Moderator.name())")

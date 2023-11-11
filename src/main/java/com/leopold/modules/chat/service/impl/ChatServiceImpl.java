@@ -65,8 +65,9 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
 
     @Override
     @Transactional
-    public ChatEntity create(String name, UserEntity creator, Collection<UserEntity> users) {
+    public ChatEntity createGroupChat(String name, UserEntity creator, Collection<UserEntity> users) {
         ChatEntity chat = new ChatEntity();
+        chat.setChatType(ChatEntity.ChatType.conversation);
         if (name != null) {
             validateName(name);
             chat.setChatName(name);
@@ -79,7 +80,27 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
         chatRepository.saveAndFlush(chat);
 
         addUsers(chat, users);
+        try {
+            addUser(chat, creator);
+        } catch (UserAlreadyInTheChatException ignored) {
+        }
 
+        ChatUserRoleEntity adminRole = new ChatUserRoleEntity(creator, chat, ChatRole.Admin);
+        chatUserRoleRepository.save(adminRole);
+
+        return chat;
+    }
+
+    @Override
+    @Transactional
+    public ChatEntity craeteDirectChat(UserEntity creator, UserEntity partner) throws UserAlreadyInTheChatException {
+        ChatEntity chat = new ChatEntity();
+        chat.setChatType(ChatEntity.ChatType.direct);
+
+        chatRepository.saveAndFlush(chat);
+
+        addUser(chat, creator);
+        addUser(chat, partner);
         ChatUserRoleEntity adminRole = new ChatUserRoleEntity(creator, chat, ChatRole.Admin);
         chatUserRoleRepository.save(adminRole);
 
@@ -162,8 +183,8 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     }
 
     @Override
-    public void addUser(ChatEntity chat, UserEntity user) throws Exception {
-        if (!checkUserInChat(chat, user))
+    public void addUser(ChatEntity chat, UserEntity user) throws UserAlreadyInTheChatException {
+        if (checkUserInChat(chat, user))
             throw new UserAlreadyInTheChatException(user.getUsername(), chat.getChatId());
         ChatUserEntity chatUserEntity = new ChatUserEntity(chat, user);
         chatUserRepository.saveAndFlush(chatUserEntity);
@@ -193,9 +214,9 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
         } else if (chat.getChatType().equals(ChatEntity.ChatType.conversation)) {
             if (chatUserRepository.countByChat(chat) > 0) {
                 //if admin leave chat we should pick a new one
-                Optional<ChatUserRoleEntity> admin = chatUserRoleRepository.findTopByChatAndRole(chat, ChatRole.Admin);
+                Optional<ChatUserRoleEntity> admin = chatUserRoleRepository.findTopByChatAndIdRole(chat, ChatRole.Admin);
                 if (admin.isEmpty()) {
-                    Optional<ChatUserRoleEntity> moder = chatUserRoleRepository.findTopByChatAndRole(chat, ChatRole.Moderator);
+                    Optional<ChatUserRoleEntity> moder = chatUserRoleRepository.findTopByChatAndIdRole(chat, ChatRole.Moderator);
                     if (moder.isPresent()) setNewChatAdminDeleteOld(chat, moder.get().getUser());
                     else {
                         UserEntity participant = chatUserRepository.findTopByChat(chat).get().getUser();
@@ -212,18 +233,18 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
 
     @Override
     public UserEntity getChatAdmin(ChatEntity chat) {
-        return chatUserRoleRepository.findTopByChatAndRole(chat, ChatRole.Admin).get().getUser();
+        return chatUserRoleRepository.findTopByChatAndIdRole(chat, ChatRole.Admin).get().getUser();
     }
 
     @Override
     public Set<UserEntity> getChatModerators(ChatEntity chat) {
-        return chatUserRoleRepository.findAllByChatAndRole(chat, ChatRole.Moderator).stream().map(ChatUserRoleEntity::getUser).collect(Collectors.toSet());
+        return chatUserRoleRepository.findAllByChatAndIdRole(chat, ChatRole.Moderator).stream().map(ChatUserRoleEntity::getUser).collect(Collectors.toSet());
     }
 
     @Override
     @Transactional
     public void setNewChatAdminDeleteOld(ChatEntity chat, UserEntity user) {
-        Optional<ChatUserRoleEntity> admin = chatUserRoleRepository.findTopByChatAndRole(chat, ChatRole.Admin);
+        Optional<ChatUserRoleEntity> admin = chatUserRoleRepository.findTopByChatAndIdRole(chat, ChatRole.Admin);
         admin.ifPresent(chatUserRoleRepository::delete);
         //deleting old user roles
         chatUserRoleRepository.deleteAllByUserAndChat(user, chat);
@@ -242,13 +263,16 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
 
     @Override
     public void removeChatModerator(ChatEntity chat, UserEntity user) {
-        Optional<ChatUserRoleEntity> moder = chatUserRoleRepository.findByChatAndUserAndRole(chat, user, ChatRole.Moderator);
+        Optional<ChatUserRoleEntity> moder = chatUserRoleRepository.findByChatAndUserAndIdRole(chat, user, ChatRole.Moderator);
         if (moder.isEmpty())
             throw new IllegalArgumentException("the user is not moderator");
         chatUserRoleRepository.delete(moder.get());
     }
 
-
+    @Override
+    public Optional<ChatEntity> getDirectByUsers(UserEntity u1, UserEntity u2) {
+        return chatUserRepository.findDirectByUsers(u1, u2);
+    }
 
     @Override
     public long countChatUsers(ChatEntity chat) {

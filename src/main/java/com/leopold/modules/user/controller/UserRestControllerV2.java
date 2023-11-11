@@ -43,7 +43,7 @@ public class UserRestControllerV2 {
     public ResponseEntity<UserProfileResponseDto> getUserProfile(@PathVariable("userId") Long someUserId) {
         UserEntity user = userService.getUserById(someUserId);
         UserProfileResponseDto responseDto = userProfileResponseMapper.convert(user);
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        return ResponseEntity.ok(responseDto);
     }
 
     @PutMapping(value= "/profilePicture")
@@ -56,19 +56,19 @@ public class UserRestControllerV2 {
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updateProfilePicture(user, fileEntity);
         MyProfileDto responseDto = userProfileResponseMapper.convertMyProfile(updatedUser);
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        return ResponseEntity.ok(responseDto);
     }
 
     @PutMapping(value= "/email")
-    @Operation(summary = "update email")
-    public ResponseEntity<MyProfileDto> updateEmail(
+    @Operation(summary = "update email data")
+    public ResponseEntity<MyProfileDto> updateProfile(
             @RequestAttribute("reqUserId") Long userId,
             @RequestBody UserUpdateEmailDto dto
     ) {
         UserEntity user = userService.getUserById(userId);
         UserEntity updatedUser = userService.updateEmail(user, dto.getEmail());
         MyProfileDto responseDto = userProfileResponseMapper.convertMyProfile(updatedUser);
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        return ResponseEntity.ok(responseDto);
     }
 
     @PutMapping(value= "/username")
@@ -90,7 +90,7 @@ public class UserRestControllerV2 {
             @RequestBody UserUpdatePasswordDto dto
     ) {
         UserEntity user = userService.getUserById(userId);
-        UserEntity updatedUser = userService.updatePassword(user, dto.getPassword());
+        userService.updatePassword(user, dto.getPassword());
         return ResponseEntity.ok().build();
     }
 

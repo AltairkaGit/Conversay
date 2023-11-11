@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/servers")
-public class ServerRestControllerV1 {
+@RequestMapping("/api/v2/servers")
+public class ServerRestControllerV2 {
     private final UserService userService;
     private final ServerService serverService;
     private final ServerResponseMapper serverResponseMapper;
 
     @Autowired
-    public ServerRestControllerV1(UserService userService, ServerService serverService, ServerResponseMapper serverResponseMapper) {
+    public ServerRestControllerV2(UserService userService, ServerService serverService, ServerResponseMapper serverResponseMapper) {
         this.userService = userService;
         this.serverService = serverService;
         this.serverResponseMapper = serverResponseMapper;

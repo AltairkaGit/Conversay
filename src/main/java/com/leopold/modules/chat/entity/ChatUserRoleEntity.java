@@ -23,9 +23,6 @@ public class ChatUserRoleEntity {
     @JoinColumn(name = "chat_id")
     private ChatEntity chat;
 
-    @Enumerated(EnumType.STRING)
-    private ChatRole role;
-
     public ChatUserRoleEntity() {
     }
 
@@ -60,11 +57,11 @@ public class ChatUserRoleEntity {
     }
 
     public ChatRole getRole() {
-        return role;
+        return id.getRole();
     }
 
     public void setRole(ChatRole role) {
-        this.role = role;
+        this.id.setRole(role);
     }
 
     @Override

@@ -27,12 +27,24 @@ public interface ChatUserRepository extends JpaRepository<ChatUserEntity, ChatUs
             "WHERE chu.user = :user " +
             "ORDER BY (SELECT MAX(mes.sendTimestamp) " +
             "          FROM MessageEntity mes " +
-            "          WHERE mes.chat = ch )" +
-            "DESC"
+            "          WHERE mes.chat = ch ) " +
+            "DESC "
     )
     Page<ChatEntity> findUserChats(@Param("user") UserEntity user, Pageable pageable);
     Optional<ChatUserEntity> findByChatAndUser(ChatEntity chat, UserEntity user);
     Optional<ChatUserEntity> findTopByChat(ChatEntity chat);
+    @Query( "SELECT ch FROM ChatEntity ch " +
+            "INNER JOIN ChatUserRoleEntity chu " +
+            "ON ch.chatId = chu.id.chatId " +
+            "WHERE ch.chatType = 'direct' AND chu.user = :u1 " +
+            "AND chu.chat IN (SELECT chat.chatId FROM ChatEntity chat " +
+            "                 INNER JOIN ChatUserEntity chatu ON chat.chatId = chatu.id.chatId " +
+            "                 WHERE chat.chatType = 'direct' AND chatu.user = :u2 ) "
+    )
+    Optional<ChatEntity> findDirectByUsers(
+            @Param("u1") UserEntity u1,
+            @Param("u2") UserEntity u2
+    );
     long countByChat(ChatEntity chat);
     default Stream<UserEntity> findChatUsers(ChatEntity chat) {
         return  findAllByChat(chat).map(ChatUserEntity::getUser);

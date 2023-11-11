@@ -3,6 +3,8 @@ package com.leopold.modules.chat.entity.key;
 import com.leopold.roles.ChatRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -14,6 +16,7 @@ public class ChatUserRoleKey implements Serializable {
     @Column(name="user_id")
     private Long userId;
     @Column(name="chat_role")
+    @Enumerated(EnumType.STRING)
     private ChatRole role;
 
     public static ChatUserRoleKey ValueOf(Long chatId, Long userId, ChatRole role) {

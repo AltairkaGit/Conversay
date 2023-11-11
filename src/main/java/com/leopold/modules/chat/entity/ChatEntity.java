@@ -15,6 +15,19 @@ import java.util.Set;
 public class ChatEntity {
     @Schema
     public enum ChatType {direct, conversation}
+    @Converter(autoApply = true)
+    public static class ChatTypeConverter implements AttributeConverter<ChatType, String> {
+
+        @Override
+        public String convertToDatabaseColumn(ChatType attribute) {
+            return attribute != null ? attribute.name() : null;
+        }
+
+        @Override
+        public ChatType convertToEntityAttribute(String dbData) {
+            return dbData != null ? ChatType.valueOf(dbData) : null;
+        }
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +42,7 @@ public class ChatEntity {
     private FileEntity chatPicture;
 
     @Column(name = "chat_type", nullable = false)
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ChatTypeConverter.class)
     private ChatType chatType;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "chat", cascade = CascadeType.ALL)
@@ -37,7 +50,7 @@ public class ChatEntity {
     private Set<ChatUserEntity> chatUsers;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "message_id")
+    @JoinColumn(name = "chat_id")
     @JsonBackReference
     private Set<MessageEntity> messages;
 

@@ -1,5 +1,6 @@
 package com.leopold.modules.chat.dto.mapper;
 
+import com.leopold.modules.chat.entity.MessageEntity;
 import com.leopold.modules.file.dto.mapper.FileResponseMapper;
 import com.leopold.modules.file.service.FileService;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
@@ -44,14 +45,15 @@ public abstract class ChatResponseMapper {
         chatResponseDto.setChatType(chat.getChatType());
         chatResponseDto.setChatUsersCount(chatService.countChatUsers(chat));
         chatResponseDto.setUnreadMessages(chatService.countUnreadMessages(chat, me, Timestamp.from(Instant.now())));
-        chatResponseDto.setLastMessage(messageMapper.convert(messageService.getLastMessage(chat).get(), me));
+        Optional<MessageEntity> lastMessage = messageService.getLastMessage(chat);
+        lastMessage.ifPresent(message -> chatResponseDto.setLastMessage(messageMapper.convert(message, me)));
 
         // Set chatName and picture depends on type of the chat
         //direct chat
         if (chatResponseDto.getChatType() == ChatEntity.ChatType.direct) {
             Optional<UserEntity> userEntity = chatService.getChatUsers(chat)
-                    .filter(user -> !user.getUserId().equals(me.getUserId()))
-                    .findAny();
+                    .filter(user -> !user.equals(me))
+                    .findFirst();
             if (userEntity.isPresent()) {
                 UserEntity companion = userEntity.get();
                 chatResponseDto.setChatName(companion.getUsername());

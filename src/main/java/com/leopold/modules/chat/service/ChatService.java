@@ -1,6 +1,7 @@
 package com.leopold.modules.chat.service;
 
 import com.leopold.modules.chat.entity.ChatEntity;
+import com.leopold.modules.chat.exception.UserAlreadyInTheChatException;
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.roles.ChatRole;
@@ -12,7 +13,8 @@ import java.util.Collection;
 @Transactional
 public interface ChatService extends ChatUserService {
     ChatEntity getById(Long chatId);
-    ChatEntity create(String name, UserEntity creator, Collection<UserEntity> users);
+    ChatEntity createGroupChat(String name, UserEntity creator, Collection<UserEntity> users);
+    ChatEntity craeteDirectChat(UserEntity creator, UserEntity partner) throws UserAlreadyInTheChatException;
     void delete(ChatEntity chat);
     void deleteById(Long chatId);
     void updatePicture(ChatEntity chat, FileEntity picture);
