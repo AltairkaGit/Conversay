@@ -1,5 +1,6 @@
 package com.leopold.modules.security.composer;
 
+import com.leopold.modules.chat.exception.UserNotInTheChatException;
 import com.leopold.modules.security.composer.context.ComposerContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

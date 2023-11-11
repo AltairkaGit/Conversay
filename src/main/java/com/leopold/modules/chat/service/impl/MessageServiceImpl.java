@@ -1,20 +1,23 @@
 package com.leopold.modules.chat.service.impl;
 
+import com.leopold.modules.chat.dto.MessageResponseDto;
 import com.leopold.modules.chat.entity.ChatEntity;
 import com.leopold.modules.chat.entity.MessageEntity;
+import com.leopold.modules.file.entity.FileEntity;
+import com.leopold.modules.file.service.FileService;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.chat.repos.MessageRepository;
 import com.leopold.modules.chat.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -33,10 +36,15 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public MessageEntity updateMessage(ChatEntity chat, UserEntity sender, MessageEntity messageFromDto) {
-        messageFromDto.setSender(sender);
-        messageFromDto.setChat(chat);
-        return messageRepository.save(messageFromDto);
+    public MessageEntity updateMessage(MessageEntity message, String content, Optional<MessageEntity> reply, List<FileEntity> attachedFiles) {
+        if (content == null || content.isEmpty())
+            throw new IllegalArgumentException("no content of the message");
+
+        message.setContent(content);
+        reply.ifPresent(message::setReply);
+        message.setAttachedFiles(attachedFiles);
+
+        return messageRepository.save(message);
     }
 
     @Override
