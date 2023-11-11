@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import javax.naming.AuthenticationException;
 import javax.security.auth.login.CredentialException;
+import java.nio.file.AccessDeniedException;
 import java.util.NoSuchElementException;
 
 @RestControllerAdvice
@@ -29,12 +30,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({
             AuthenticationException.class,
             CredentialException.class,
+            SecurityException.class,
+            AccessDeniedException.class
+    })
+    public ResponseEntity<String> handleSecurity(Exception ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
+    @ExceptionHandler({
             SignatureException.class,
             JwtException.class,
-            SecurityException.class,
-            MalformedJwtException.class
+            MalformedJwtException.class,
     })
-    public ResponseEntity<String> handleIllegalArgumentException(Exception ex) {
+    public ResponseEntity<String> handleDeadToken(Exception ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 

@@ -38,8 +38,10 @@ public class ChatAuthorizationFilterSequence implements FilterSequence {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         Long userId = context.get(ComposerContextEnum.UserId);
         Long chatId = chatAuthorizationService.extractChatIdFromURI(httpServletRequest.getRequestURI());
-        if (userId == null || chatId == null || !chatAuthorizationService.checkUserInChat(chatId, userId))
-            throw new AuthenticationException("user not in the chat");
+        if (userId != null && chatId != null) {
+            if (!chatAuthorizationService.checkUserInChat(chatId, userId))
+                throw new AuthenticationException("user not in the chat");
+        }
         List<ChatRole> roles = new ArrayList<>(List.of(ChatRole.Participant));
         List<ChatRole> userChatRoles = chatAuthorizationService.getUserChatRoles(chatId, userId);
         if (userChatRoles != null && !userChatRoles.isEmpty())
