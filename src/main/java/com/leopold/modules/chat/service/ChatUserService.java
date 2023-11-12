@@ -21,6 +21,11 @@ public interface ChatUserService {
     @Transactional(readOnly = true)
     Stream<UserEntity> getChatUsers(ChatEntity chat);
     @Transactional(readOnly = true)
+    Set<Long> getAllChatUserIds(ChatEntity chat);
+
+    @Transactional(readOnly = true)
+    Stream<Long> streamAllChatUserIds(ChatEntity chat);
+    @Transactional(readOnly = true)
     Page<ChatEntity> getUserChats(UserEntity user, Pageable pageable);
     @Transactional(readOnly = true)
     Page<UserEntity> getChatUsers(ChatEntity chat, Pageable pageable);

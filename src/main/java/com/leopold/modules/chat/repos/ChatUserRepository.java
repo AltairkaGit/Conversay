@@ -10,14 +10,26 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Repository
 public interface ChatUserRepository extends JpaRepository<ChatUserEntity, ChatUserKey> {
+    @Transactional(readOnly = true)
     Stream<ChatUserEntity> findAllByChat(ChatEntity chat);
+    @Query( "SELECT chu.user.userId FROM ChatUserEntity chu " +
+            "WHERE chu.chat = :chat "
+    )
+    Set<Long> findAllUserIdsByChat(@Param("chat") ChatEntity chat);
+    @Query( "SELECT chu.user.userId FROM ChatUserEntity chu " +
+            "WHERE chu.chat = :chat "
+    )
+    @Transactional(readOnly = true)
+    Stream<Long> streamAllUserIdsByChat(@Param("chat") ChatEntity chat);
     @Query( "SELECT cu.user FROM ChatUserEntity cu ")
     Page<UserEntity> findChatUsers(ChatEntity chat, Pageable pageable);
 

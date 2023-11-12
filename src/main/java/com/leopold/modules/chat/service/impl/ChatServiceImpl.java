@@ -178,6 +178,16 @@ public class ChatServiceImpl implements ChatService, ChatAuthorizationService {
     }
 
     @Override
+    public Set<Long> getAllChatUserIds(ChatEntity chat) {
+        return chatUserRepository.findAllUserIdsByChat(chat);
+    }
+
+    @Override
+    public Stream<Long> streamAllChatUserIds(ChatEntity chat) {
+        return chatUserRepository.streamAllUserIdsByChat(chat);
+    }
+
+    @Override
     public long countUnreadMessages(ChatEntity chat, UserEntity user, Timestamp origin) {
         return messageRepository.countUnreadMessages(chat.getChatId(), user.getUserId(), origin);
     }

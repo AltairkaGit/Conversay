@@ -21,6 +21,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -28,7 +29,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 public class ChatMessageControllerV2 {
@@ -66,22 +69,54 @@ public class ChatMessageControllerV2 {
     ) {
     }
 
+    //for future optimizations
+    @SubscribeMapping("/queue/chat/messages/new")
+    public void subscribeNewMessages(
+            SimpMessageHeaderAccessor accessor
+    ) {
+        //Long userId = (Long)accessor.getSessionAttributes().get("userId");
+
+    }
+
     @ChatAuthorizationSubscription
     @MessageMapping("/chat/{chatId}")
+    @Transactional
     public void sendMessage(
         SimpMessageHeaderAccessor accessor,
         @DestinationVariable("chatId") String chatIdParam,
         MessageWebsocketDto message
     ) {
-        Long userId = (Long)accessor.getSessionAttributes().get("userId");
+        Long myId = (Long)accessor.getSessionAttributes().get("userId");
         Long chatId = Long.valueOf(chatIdParam);
         ChatEntity chat = chatService.getById(chatId);
-        UserEntity me = userService.getUserById(userId);
+        UserEntity me = userService.getUserById(myId);
 
         MessageEntity messageFromDto = messageMapper.convert(message);
         MessageEntity messageEntity = messageService.createMessage(chat, me, messageFromDto);
         MessageResponseDto handledMessage = messageMapper.convert(messageEntity, me);
         simpMessagingTemplate.convertAndSend("/app/queue/chat/" + chatId + "/messages", handledMessage.toString());
+        notifyNewMessage(messageEntity, chat);
+    }
+
+    /**
+     *  Format: chatId:messageId
+     */
+    @Transactional
+    public void notifyNewMessage(MessageEntity message, ChatEntity chat) {
+        //notify everyone except me
+        String messageNotification = chat.getChatId() + ":" + message.getMessageId();
+        String messageNewDest = "/app/queue/chat/messages/new";
+        if (chatService.countChatUsers(chat) > 100) {
+            Stream<Long> chatUserIds = chatService.streamAllChatUserIds(chat);
+            chatUserIds
+                    .filter(id -> !Objects.equals(id, message.getSender().getUserId()))
+                    .map(String::valueOf)
+                    .forEach(id -> simpMessagingTemplate.convertAndSendToUser(id, messageNewDest, messageNotification));
+        } else {
+            Set<Long> chatUserIds = chatService.getAllChatUserIds(chat);
+            chatUserIds.remove(message.getSender().getUserId());
+            chatUserIds.forEach(id -> simpMessagingTemplate.convertAndSendToUser(String.valueOf(id), messageNewDest, messageNotification));
+        }
     }
 
     @PutMapping("/api/v2/message")

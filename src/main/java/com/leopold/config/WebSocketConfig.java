@@ -1,5 +1,6 @@
 package com.leopold.config;
 
+import com.leopold.lib.ws.impl.HandShakeHandlerImpl;
 import com.leopold.modules.security.websocket.ConnectionInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -14,10 +15,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final ConnectionInterceptor connectionInterceptor;
+    private final HandShakeHandlerImpl handShakeHandler;
 
     @Autowired
-    public WebSocketConfig(ConnectionInterceptor connectionInterceptor) {
+    public WebSocketConfig(ConnectionInterceptor connectionInterceptor, HandShakeHandlerImpl handShakeHandler) {
         this.connectionInterceptor = connectionInterceptor;
+        this.handShakeHandler = handShakeHandler;
     }
 
     @Override
@@ -31,10 +34,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry
                 .addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
+                .setHandshakeHandler(handShakeHandler)
                 .addInterceptors(connectionInterceptor);
         registry
                 .addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
+                .setHandshakeHandler(handShakeHandler)
                 .addInterceptors(connectionInterceptor)
                 .withSockJS();
     }
