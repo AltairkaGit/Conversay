@@ -94,7 +94,7 @@ public class ChatMessageControllerV2 {
         MessageEntity messageFromDto = messageMapper.convert(message);
         MessageEntity messageEntity = messageService.createMessage(chat, me, messageFromDto);
         MessageResponseDto handledMessage = messageMapper.convert(messageEntity, me);
-        simpMessagingTemplate.convertAndSend("/app/queue/chat/" + chatId + "/messages", handledMessage.toString());
+        simpMessagingTemplate.convertAndSend("/app/queue/chat/" + chatId + "/messages", handledMessage);
         notifyNewMessage(messageEntity, chat);
     }
 
