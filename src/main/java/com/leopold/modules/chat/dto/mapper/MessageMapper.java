@@ -55,13 +55,17 @@ public abstract class MessageMapper {
 
     public MessageEntity convert(MessageWebsocketDto dto) {
         MessageEntity message = extractBaseMessageEntity(dto.getContent(), dto.getSendTimestamp(), dto.getReplyId());
-        message.setAttachedFiles(dto.getFileIds().stream().map(fileId -> fileService.getFile(fileId)).collect(Collectors.toList()));
+
+        if (dto.getFileIds() != null)
+            message.setAttachedFiles(dto.getFileIds().stream().map(fileId -> fileService.getFile(fileId)).collect(Collectors.toList()));
         return message;
     }
 
     public MessageEntity convert(MessageResponseDto dto) {
         MessageEntity message = extractBaseMessageEntity(dto.getContent(), dto.getSendTimestamp(), dto.getReplyId());
-        message.setAttachedFiles(dto.getFileUrls().stream().map(fileUrl -> fileService.getFile(fileUrl)).collect(Collectors.toList()));
+
+        if (dto.getFileUrls() != null)
+            message.setAttachedFiles(dto.getFileUrls().stream().map(fileUrl -> fileService.getFile(fileUrl)).collect(Collectors.toList()));
         return message;
     }
 
