@@ -10,17 +10,8 @@ public class MessageResponseDto {
     private Long chatId;
     private Long senderId;
     private Long replyId;
-    private boolean isMine;
     private String replyContent;
     private List<String> fileUrls;
-
-    public boolean isMine() {
-        return isMine;
-    }
-
-    public void setIsMine(boolean isMine) {
-        this.isMine = isMine;
-    }
 
     public Long getMessageId() {
         return messageId;

@@ -38,7 +38,6 @@ public abstract class MessageMapper {
         dto.setMessageId(message.getMessageId());
         dto.setContent(message.getContent());
         dto.setSendTimestamp(message.getSendTimestamp());
-        dto.setIsMine(setIsMine(message, receiver));
         dto.setSenderId(message.getSender().getUserId());
         dto.setFileUrls(fileResponseMapper.map(message.getAttachedFiles()));
 
