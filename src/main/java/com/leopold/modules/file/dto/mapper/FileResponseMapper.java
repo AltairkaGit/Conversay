@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ public abstract class FileResponseMapper implements Converter<FileEntity, FileRe
 
     @Named("getFileUrls")
     public List<String> map(List<FileEntity> files) {
+        if (files == null) return null;
         return files.stream().map(file -> fileService.composeUrl(file.getName())).collect(Collectors.toList());
     }
 
