@@ -6,7 +6,6 @@ import java.util.List;
 public class MessageWebsocketDto {
     private Timestamp sendTimestamp;
     private String content;
-    private Long senderId;
     private Long replyId;
     private List<Long> fileIds;
 
@@ -24,14 +23,6 @@ public class MessageWebsocketDto {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public Long getSenderId() {
-        return senderId;
-    }
-
-    public void setSenderId(Long senderId) {
-        this.senderId = senderId;
     }
 
     public Long getReplyId() {
