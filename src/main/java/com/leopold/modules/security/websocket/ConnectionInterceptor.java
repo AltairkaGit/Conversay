@@ -26,7 +26,7 @@ public class ConnectionInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
         String access = tokenExtractor.extract(request);
-        System.out.println("Thomas shelby ws " + access + request.toString());
+        System.out.println("Thomas shelby ws " + access + "  " + request.getHeaders() + "  " + request.getRemoteAddress() + "  " + request.getURI());
         try {
             if (access == null || access.isEmpty() || !jwtTokenProvider.validateAccess(access))
                 return false;
