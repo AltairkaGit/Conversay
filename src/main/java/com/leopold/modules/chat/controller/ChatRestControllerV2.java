@@ -111,6 +111,9 @@ public class ChatRestControllerV2 {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         UserEntity me = userService.getUserById(userId);
+        if (me.equals(partner)) {
+            throw new IllegalArgumentException("you cannot create direct with yourself");
+        }
         Optional<ChatEntity> chatEntityOptional = chatService.getDirectByUsers(me, partner);
         ChatResponseDto res;
         if (chatEntityOptional.isPresent()) {

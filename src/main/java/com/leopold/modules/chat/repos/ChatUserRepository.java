@@ -46,7 +46,7 @@ public interface ChatUserRepository extends JpaRepository<ChatUserEntity, ChatUs
     Optional<ChatUserEntity> findByChatAndUser(ChatEntity chat, UserEntity user);
     Optional<ChatUserEntity> findTopByChat(ChatEntity chat);
     @Query( "SELECT ch FROM ChatEntity ch " +
-            "INNER JOIN ChatUserRoleEntity chu " +
+            "INNER JOIN ChatUserEntity chu " +
             "ON ch.chatId = chu.id.chatId " +
             "WHERE ch.chatType = 'direct' AND chu.user = :u1 " +
             "AND chu.chat.chatId IN (SELECT chat.chatId FROM ChatEntity chat " +
