@@ -49,7 +49,7 @@ public interface ChatUserRepository extends JpaRepository<ChatUserEntity, ChatUs
             "INNER JOIN ChatUserRoleEntity chu " +
             "ON ch.chatId = chu.id.chatId " +
             "WHERE ch.chatType = 'direct' AND chu.user = :u1 " +
-            "AND chu.chat IN (SELECT chat.chatId FROM ChatEntity chat " +
+            "AND chu.chat.chatId IN (SELECT chat.chatId FROM ChatEntity chat " +
             "                 INNER JOIN ChatUserEntity chatu ON chat.chatId = chatu.id.chatId " +
             "                 WHERE chat.chatType = 'direct' AND chatu.user = :u2 ) "
     )
