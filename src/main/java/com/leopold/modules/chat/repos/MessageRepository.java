@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -28,9 +29,10 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     long countAllByChatAndSendTimestampBefore(ChatEntity chat, Timestamp start);
     @Query( "SELECT m FROM MessageEntity m " +
             "WHERE m.chat.chatId = :chatId " +
-            "  AND m.sendTimestamp = (SELECT MAX(mes.sendTimestamp) FROM MessageEntity mes WHERE mes.chat.chatId = :chatId) "
+            "  AND m.sendTimestamp = (SELECT MAX(mes.sendTimestamp) FROM MessageEntity mes WHERE mes.chat.chatId = :chatId) " +
+            " "
     )
-    Optional<MessageEntity> getLastMessage(@Param("chatId") long chatId);
+    List<MessageEntity> getLastMessages(@Param("chatId") long chatId);
     Set<MessageEntity> findAllByChatAndSendTimestampBetweenOrderBySendTimestampDesc(ChatEntity chat, Timestamp start, Timestamp end);
     @Query("SELECT DISTINCT COUNT(mes.messageId) " +
             "FROM MessageEntity mes " +
