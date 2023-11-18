@@ -1,39 +1,26 @@
 package com.leopold.modules.server.entity;
 
-import com.leopold.modules.server.entity.key.ServerUserKey;
-import com.leopold.modules.user.entity.UserEntity;
+import com.leopold.modules.server.entity.key.ServerRoleKey;
 import jakarta.persistence.*;
 
 import java.util.Objects;
 
 @Entity
-@Table(name = "server_user")
-public class ServerUserEntity {
+@Table(name = "server_role")
+public class ServerRoleEntity {
     @EmbeddedId
-    private ServerUserKey id;
-    @ManyToOne
-    @MapsId("userId")
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+    private ServerRoleKey id;
+
     @ManyToOne
     @MapsId("serverId")
-    @JoinColumn(name = "server_id")
     private ServerEntity server;
 
-    public ServerUserKey getId() {
+    public ServerRoleKey getId() {
         return id;
     }
 
-    public void setId(ServerUserKey id) {
+    public void setId(ServerRoleKey id) {
         this.id = id;
-    }
-
-    public UserEntity getUser() {
-        return user;
-    }
-
-    public void setUser(UserEntity user) {
-        this.user = user;
     }
 
     public ServerEntity getServer() {
@@ -44,11 +31,19 @@ public class ServerUserEntity {
         this.server = server;
     }
 
+    public String getRole() {
+        return id.getRole();
+    }
+
+    public void setRoleName(String role) {
+        this.id.setRole(role);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ServerUserEntity that = (ServerUserEntity) o;
+        ServerRoleEntity that = (ServerRoleEntity) o;
         return Objects.equals(id, that.id);
     }
 

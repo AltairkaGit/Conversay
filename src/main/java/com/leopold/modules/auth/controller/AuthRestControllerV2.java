@@ -38,6 +38,7 @@ public class AuthRestControllerV2 {
     }
 
     @PostMapping("/username")
+    @Operation(summary = "check if username is free to take")
     public ResponseEntity<Void> checkUsernameIsFree(@RequestBody CheckUsernameIsFreeDto dto) {
         boolean isFree = authService.checkUsernameIsFree(dto.getUsername());
         if (isFree) return ResponseEntity.ok().build();
