@@ -61,7 +61,7 @@ public class MessageServiceImpl implements MessageService {
     public Optional<MessageEntity> getLastMessage(ChatEntity chat) {
         List<MessageEntity> lastMessages = messageRepository.getLastMessages(chat.getChatId());
         if (lastMessages == null || lastMessages.isEmpty()) return Optional.empty();
-        return Optional.of(lastMessages.get(0));
+        return Optional.of(lastMessages.get(lastMessages.size() - 1));
     }
 
     @Override

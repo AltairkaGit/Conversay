@@ -1,5 +1,6 @@
 package com.leopold.modules.server.controller;
 
+import com.leopold.lib.page.PageDto;
 import com.leopold.modules.chat.dto.MessageWebsocketDto;
 import com.leopold.modules.server.dto.ServerResponseDto;
 import com.leopold.modules.server.dto.mapper.ServerResponseMapper;
@@ -8,6 +9,7 @@ import com.leopold.modules.server.service.ConversationService;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.server.service.ServerService;
 import com.leopold.modules.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,15 +20,13 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/v2/servers")
+@RequestMapping("/api/v2/server")
 public class ServerRestControllerV2 {
     private final UserService userService;
     private final ServerService serverService;
@@ -49,13 +49,30 @@ public class ServerRestControllerV2 {
     }
 
     @GetMapping(value="")
-    public ResponseEntity<Page<ServerResponseDto>> getChats(
+    @Operation(summary = "get page of your servers")
+    public ResponseEntity<PageDto<ServerResponseDto>> getServers(
             @RequestAttribute("reqUserId") Long userId,
             Pageable pageable
     ) {
         UserEntity me = userService.getUserById(userId);
         Page<ServerEntity> servers = serverService.getServers(me, pageable);
-        Page<ServerResponseDto> res = serverResponseMapper.convertPage(servers);
+        PageDto<ServerResponseDto> res = PageDto.of(serverResponseMapper.convertPage(servers));
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping(value="/{serverId}")
+    @Operation(summary = "get a server by id")
+    public ResponseEntity<ServerResponseDto> getServer(
+            @RequestAttribute("reqUserId") Long userId,
+            @PathVariable Long serverId
+    ) {
+        UserEntity me = userService.getUserById(userId);
+        if (!serverService.checkIfServerUser(me, serverId))
+            throw new SecurityException("you are not a participant of the server");
+        Optional<ServerEntity> server = serverService.getServerById(serverId);
+        if (server.isEmpty())
+            throw new IllegalArgumentException("there is no server with this id");
+        ServerResponseDto res = serverResponseMapper.convert(server.get());
         return ResponseEntity.ok(res);
     }
 

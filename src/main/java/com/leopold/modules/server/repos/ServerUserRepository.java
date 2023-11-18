@@ -8,8 +8,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface ServerUserRepository extends JpaRepository<ServerUserEntity, Long> {
+    Optional<ServerUserEntity> findByServerServerIdAndUserUserId(Long serverId, Long userId);
     Page<ServerUserEntity> findAllByUser(UserEntity user, Pageable pageable);
     Page<ServerUserEntity> findAllByServer(ServerEntity server, Pageable pageable);
 

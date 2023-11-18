@@ -1,6 +1,7 @@
 package com.leopold.modules.server.service.impl;
 
 import com.leopold.modules.server.entity.ServerEntity;
+import com.leopold.modules.server.entity.ServerUserEntity;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.server.repos.ServerRepository;
 import com.leopold.modules.server.repos.ServerUserRepository;
@@ -9,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class ServerServiceImpl implements ServerService {
@@ -24,5 +27,16 @@ public class ServerServiceImpl implements ServerService {
     @Override
     public Page<ServerEntity> getServers(UserEntity user, Pageable pageable) {
         return serverUserRepository.findUserServers(user, pageable);
+    }
+
+    @Override
+    public boolean checkIfServerUser(UserEntity user, Long serverId) {
+        Optional<ServerUserEntity> serverUser = serverUserRepository.findByServerServerIdAndUserUserId(serverId, user.getUserId());
+        return serverUser.isPresent();
+    }
+
+    @Override
+    public Optional<ServerEntity> getServerById(Long serverId) {
+        return serverRepository.findById(serverId);
     }
 }
