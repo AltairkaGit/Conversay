@@ -1,12 +1,13 @@
 package com.leopold.modules.server.controller;
 
 import com.leopold.lib.page.PageDto;
-import com.leopold.modules.server.dto.AddServerUserDto;
-import com.leopold.modules.server.dto.CreateServerDto;
-import com.leopold.modules.server.dto.ServerResponseDto;
-import com.leopold.modules.server.dto.mapper.ServerResponseMapper;
+import com.leopold.modules.server.dto.*;
+import com.leopold.modules.server.dto.mapper.ServerChannelMapper;
+import com.leopold.modules.server.dto.mapper.ServerMapper;
+import com.leopold.modules.server.entity.ServerChannelEntity;
 import com.leopold.modules.server.entity.ServerEntity;
 import com.leopold.modules.server.service.ConversationService;
+import com.leopold.modules.server.service.ServerChannelService;
 import com.leopold.modules.server.service.ServerUserService;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.server.service.ServerService;
@@ -31,47 +32,53 @@ public class ServerRestControllerV2 {
     private final UserService userService;
     private final ServerService serverService;
     private final ServerUserService serverUserService;
-    private final ServerResponseMapper serverResponseMapper;
+    private final ServerMapper serverMapper;
     private final ConversationService conversationService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ServerChannelMapper serverChannelMapper;
+    private final ServerChannelService serverChannelService;
 
     @Autowired
     public ServerRestControllerV2(
             UserService userService,
             ServerService serverService,
             ServerUserService serverUserService,
-            ServerResponseMapper serverResponseMapper,
+            ServerMapper serverMapper,
             ConversationService conversationService,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate,
+            ServerChannelMapper serverChannelMapper,
+            ServerChannelService serverChannelService) {
         this.userService = userService;
         this.serverService = serverService;
         this.serverUserService = serverUserService;
-        this.serverResponseMapper = serverResponseMapper;
+        this.serverMapper = serverMapper;
         this.conversationService = conversationService;
         this.messagingTemplate = messagingTemplate;
+        this.serverChannelMapper = serverChannelMapper;
+        this.serverChannelService = serverChannelService;
     }
 
     @GetMapping(value="")
     @Operation(summary = "get page of your servers")
-    public ResponseEntity<PageDto<ServerResponseDto>> getServers(
+    public ResponseEntity<PageDto<ServerDto>> getServers(
             @RequestAttribute("reqUserId") Long userId,
             Pageable pageable
     ) {
         UserEntity me = userService.getUserById(userId);
         Page<ServerEntity> servers = serverService.getServers(me, pageable);
-        PageDto<ServerResponseDto> res = PageDto.of(serverResponseMapper.convertPage(servers));
+        PageDto<ServerDto> res = PageDto.of(serverMapper.convertPage(servers));
         return ResponseEntity.ok(res);
     }
 
     @PostMapping(value="")
     @Operation(summary = "create a server")
-    public ResponseEntity<ServerResponseDto> createServer(
+    public ResponseEntity<ServerDto> createServer(
             @RequestAttribute("reqUserId") Long userId,
             CreateServerDto dto
     ) {
         UserEntity me = userService.getUserById(userId);
         ServerEntity server = serverService.createServer(me, dto.getServername());
-        ServerResponseDto res = serverResponseMapper.convert(server);
+        ServerDto res = serverMapper.convert(server);
         return ResponseEntity.ok(res);
     }
 
@@ -93,7 +100,7 @@ public class ServerRestControllerV2 {
 
     @GetMapping(value="/{serverId}")
     @Operation(summary = "get a server by id")
-    public ResponseEntity<ServerResponseDto> getServer(
+    public ResponseEntity<ServerExtendedDto> getServer(
             @RequestAttribute("reqUserId") Long userId,
             @PathVariable Long serverId
     ) {
@@ -103,7 +110,25 @@ public class ServerRestControllerV2 {
         Optional<ServerEntity> server = serverService.getServerById(serverId);
         if (server.isEmpty())
             throw new IllegalArgumentException("there is no server with this id");
-        ServerResponseDto res = serverResponseMapper.convert(server.get());
+        ServerExtendedDto res = serverMapper.convertExtended(server.get());
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping(value="/{serverId}/channel")
+    @Operation(summary = "create a channel")
+    public ResponseEntity<ServerChannelDto> createChannel(
+            @RequestAttribute("reqUserId") Long userId,
+            @PathVariable Long serverId,
+            @RequestBody CreateChannelDto dto
+            ) {
+        UserEntity me = userService.getUserById(userId);
+        if (!serverService.checkIfServerUser(me, serverId))
+            throw new SecurityException("you are not a participant of the server");
+        Optional<ServerEntity> server = serverService.getServerById(serverId);
+        if (server.isEmpty())
+            throw new IllegalArgumentException("there is no server with this id");
+        ServerChannelEntity channel = serverChannelService.createChannel(server.get(), dto.getChannelName(), dto.getChannelType());
+        ServerChannelDto res = serverChannelMapper.convert(channel);
         return ResponseEntity.ok(res);
     }
 
@@ -112,6 +137,8 @@ public class ServerRestControllerV2 {
             SimpMessageHeaderAccessor accessor,
             @DestinationVariable("conversationId") String conversation
     ) {
+        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
+        System.out.println("User: " + myId + " subscribed conversation " + conversation);
         //Set<String> room = conversationService.getRoomCopy(conversation);
         //conversationService.attachUser(conversation, myId);
     }
@@ -123,6 +150,8 @@ public class ServerRestControllerV2 {
             String sessionDescriptionProtocol
     ) {
         String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
+        System.out.println("User: " + myId + " sends in conversation " + conversation + " message: " + sessionDescriptionProtocol);
+
         messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
     }
 }

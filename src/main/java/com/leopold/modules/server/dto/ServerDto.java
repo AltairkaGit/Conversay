@@ -1,6 +1,6 @@
 package com.leopold.modules.server.dto;
 
-public class ServerResponseDto {
+public class ServerDto {
     private Long serverId;
     private String servername;
     private String serverPictureUrl;
