@@ -49,7 +49,7 @@ public class ServerUserServiceImpl implements ServerUserService {
     }
 
     @Override
-    public Page<UserEntity> getServerUsers(ServerEntity server, Pageable pageable) {
+    public Page<ServerUserEntity> getServerUsers(ServerEntity server, Pageable pageable) {
         return serverUserRepository.findServerUsers(server, pageable);
     }
 

@@ -16,6 +16,6 @@ public interface ServerUserService {
     void addUser(long serverId, long userId) throws UserAlreadyOnServerException;
     void kickUser(long serverId, long userId) throws UserNotOnServerException;
     void kickUsers(long serverId, Collection<Long> userIds);
-    Page<UserEntity> getServerUsers(ServerEntity server, Pageable pageable);
+    Page<ServerUserEntity> getServerUsers(ServerEntity server, Pageable pageable);
     Page<ServerEntity> getUserServers(UserEntity user, Pageable pageable);
 }

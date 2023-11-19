@@ -43,16 +43,6 @@ public class ServerServiceImpl implements ServerService {
     }
 
     @Override
-    public Page<ServerEntity> getServers(UserEntity user, Pageable pageable) {
-        return serverUserService.getUserServers(user, pageable);
-    }
-
-    @Override
-    public Page<UserEntity> getUsers(ServerEntity server, Pageable pageable) {
-        return serverUserService.getServerUsers(server, pageable);
-    }
-
-    @Override
     public boolean checkIfServerUser(UserEntity user, Long serverId) {
         Optional<ServerUserEntity> serverUser = serverUserService.getServerUser(serverId, user.getUserId());
         return serverUser.isPresent();

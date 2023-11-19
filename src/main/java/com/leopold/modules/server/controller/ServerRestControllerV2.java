@@ -4,8 +4,10 @@ import com.leopold.lib.page.PageDto;
 import com.leopold.modules.server.dto.*;
 import com.leopold.modules.server.dto.mapper.ServerChannelMapper;
 import com.leopold.modules.server.dto.mapper.ServerMapper;
+import com.leopold.modules.server.dto.mapper.ServerUserMapper;
 import com.leopold.modules.server.entity.ServerChannelEntity;
 import com.leopold.modules.server.entity.ServerEntity;
+import com.leopold.modules.server.entity.ServerUserEntity;
 import com.leopold.modules.server.service.ConversationService;
 import com.leopold.modules.server.service.ServerChannelService;
 import com.leopold.modules.server.service.ServerUserService;
@@ -37,6 +39,7 @@ public class ServerRestControllerV2 {
     private final SimpMessagingTemplate messagingTemplate;
     private final ServerChannelMapper serverChannelMapper;
     private final ServerChannelService serverChannelService;
+    private final ServerUserMapper serverUserMapper;
 
     @Autowired
     public ServerRestControllerV2(
@@ -47,7 +50,8 @@ public class ServerRestControllerV2 {
             ConversationService conversationService,
             SimpMessagingTemplate messagingTemplate,
             ServerChannelMapper serverChannelMapper,
-            ServerChannelService serverChannelService) {
+            ServerChannelService serverChannelService,
+            ServerUserMapper serverUserMapper) {
         this.userService = userService;
         this.serverService = serverService;
         this.serverUserService = serverUserService;
@@ -56,6 +60,7 @@ public class ServerRestControllerV2 {
         this.messagingTemplate = messagingTemplate;
         this.serverChannelMapper = serverChannelMapper;
         this.serverChannelService = serverChannelService;
+        this.serverUserMapper = serverUserMapper;
     }
 
     @GetMapping(value="")
@@ -65,8 +70,22 @@ public class ServerRestControllerV2 {
             Pageable pageable
     ) {
         UserEntity me = userService.getUserById(userId);
-        Page<ServerEntity> servers = serverService.getServers(me, pageable);
+        Page<ServerEntity> servers = serverUserService.getUserServers(me, pageable);
         PageDto<ServerDto> res = PageDto.of(serverMapper.convertPage(servers));
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping(value="/{serverId}/users")
+    @Operation(summary = "get page of your server users")
+    public ResponseEntity<PageDto<ServerUserProfileDto>> getServerUsers(
+            @RequestAttribute("reqUserId") Long userId,
+            @PathVariable Long serverId,
+            Pageable pageable
+    ) {
+        UserEntity me = userService.getUserById(userId);
+        ServerEntity server = serverService.getServerById(serverId).get();
+        Page<ServerUserEntity> servers = serverUserService.getServerUsers(server, pageable);
+        PageDto<ServerUserProfileDto> res = PageDto.of(serverUserMapper.convertPage(servers));
         return ResponseEntity.ok(res);
     }
 
@@ -154,4 +173,18 @@ public class ServerRestControllerV2 {
 
         messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
     }
+    /*
+    @MessageMapping("/conversation/new")
+    public void startConversation(
+            SimpMessageHeaderAccessor accessor,
+            String chatId
+    ) {
+        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
+
+        //пизжу с бд id челов у которых есть этот канал
+
+        for (userId : users)
+            messagingTemplate.convertAndSendToUser(userId, "/app/queue/conversation/new", chatlId);
+    }
+    */
 }

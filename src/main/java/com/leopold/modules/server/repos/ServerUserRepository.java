@@ -23,8 +23,8 @@ public interface ServerUserRepository extends JpaRepository<ServerUserEntity, Se
     @Query(value = "INSERT INTO convy.server_user(server_id, user_id) VALUES(:serverId, :userId)", nativeQuery = true)
     void createServerUser(@Param("serverId") long serverId, @Param("userId") long userId);
     Optional<ServerUserEntity> findByServerServerIdAndUserUserId(Long serverId, Long userId);
-    @Query("SELECT su.user FROM ServerUserEntity su WHERE su.server = :server")
-    Page<UserEntity> findServerUsers(@Param("server") ServerEntity server, Pageable pageable);
+    @Query("SELECT su FROM ServerUserEntity su WHERE su.server = :server")
+    Page<ServerUserEntity> findServerUsers(@Param("server") ServerEntity server, Pageable pageable);
     @Query("SELECT su.server FROM ServerUserEntity su WHERE su.user = :user")
     Page<ServerEntity> findUserServers(@Param("user") UserEntity user, Pageable pageable);
     void deleteAllByUserUserIdInAndServerServerId(Collection<Long> ids, long serverId);
