@@ -6,6 +6,8 @@ import com.leopold.lib.validator.exception.WrongEmailException;
 import com.leopold.modules.chat.exception.UserAlreadyInTheChatException;
 import com.leopold.modules.chat.exception.UserNotInTheChatException;
 import com.leopold.modules.file.exception.FileIsTooGreatException;
+import com.leopold.modules.server.exception.UserAlreadyOnServerException;
+import com.leopold.modules.server.exception.UserNotOnServerException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -47,13 +49,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({
-        WrongEmailException.class,
-        LessMinLengthException.class,
-        MoreMaxLengthException.class,
-        FileIsTooGreatException.class,
-        UserNotInTheChatException.class,
-        UserAlreadyInTheChatException.class,
-        IllegalArgumentException.class
+            WrongEmailException.class,
+            LessMinLengthException.class,
+            MoreMaxLengthException.class,
+            FileIsTooGreatException.class,
+            UserNotInTheChatException.class,
+            UserAlreadyInTheChatException.class,
+            UserAlreadyOnServerException.class,
+            UserNotOnServerException.class,
+            IllegalArgumentException.class
     })
     public ResponseEntity<String> handleWrongEmailException(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);

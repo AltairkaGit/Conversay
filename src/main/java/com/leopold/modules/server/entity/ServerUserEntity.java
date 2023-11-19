@@ -12,11 +12,11 @@ public class ServerUserEntity {
     @EmbeddedId
     private ServerUserKey id;
     @ManyToOne
-    @MapsId("userId")
+    @MapsId("user_id")
     @JoinColumn(name = "user_id")
     private UserEntity user;
     @ManyToOne
-    @MapsId("serverId")
+    @MapsId("server_id")
     @JoinColumn(name = "server_id")
     private ServerEntity server;
 

@@ -4,22 +4,28 @@ import com.leopold.modules.server.entity.ServerEntity;
 import com.leopold.modules.server.entity.ServerUserEntity;
 import com.leopold.modules.server.entity.key.ServerUserKey;
 import com.leopold.modules.user.entity.UserEntity;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 
 @Repository
 public interface ServerUserRepository extends JpaRepository<ServerUserEntity, ServerUserKey> {
+    @Modifying
+    @Query(value = "INSERT INTO convy.server_user(server_id, user_id) VALUES(:serverId, :userId)", nativeQuery = true)
+    void createServerUser(@Param("serverId") long serverId, @Param("userId") long userId);
     Optional<ServerUserEntity> findByServerServerIdAndUserUserId(Long serverId, Long userId);
-    Page<ServerUserEntity> findAllByUser(UserEntity user, Pageable pageable);
-    Page<ServerUserEntity> findAllByServer(ServerEntity server, Pageable pageable);
-    default Page<UserEntity> findServerUsers(ServerEntity server, Pageable pageable) {
-        return findAllByServer(server, pageable).map(ServerUserEntity::getUser);
-    }
-    default Page<ServerEntity> findUserServers(UserEntity user, Pageable pageable) {
-        return findAllByUser(user, pageable).map(ServerUserEntity::getServer);
-    }
+    @Query("SELECT su.user FROM ServerUserEntity su WHERE su.server = :server")
+    Page<UserEntity> findServerUsers(@Param("server") ServerEntity server, Pageable pageable);
+    @Query("SELECT su.server FROM ServerUserEntity su WHERE su.user = :user")
+    Page<ServerEntity> findUserServers(@Param("user") UserEntity user, Pageable pageable);
+    void deleteAllByUserUserIdInAndServerServerId(Collection<Long> ids, long serverId);
 }
