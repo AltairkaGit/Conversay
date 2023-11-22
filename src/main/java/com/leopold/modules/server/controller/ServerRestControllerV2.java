@@ -160,6 +160,10 @@ public class ServerRestControllerV2 {
         System.out.println("User: " + myId + " subscribed conversation " + conversation);
         //Set<String> room = conversationService.getRoomCopy(conversation);
         //conversationService.attachUser(conversation, myId);
+
+
+        //todo: сосать член, сделать conversationEven json, потом сделать '/app/conversation/{chatId}/leave'
+        //messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
     }
 
     @MessageMapping("/conversation/{conversationId}")

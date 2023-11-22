@@ -2,14 +2,14 @@ package com.leopold.modules.server.dto;
 
 import com.leopold.modules.user.dto.UserProfileResponseDto;
 
-public class ServerUserProfileDto {
-    private UserProfileResponseDto profile;
+public class ServerUserProfileDto extends UserProfileResponseDto {
+    private String role;
 
-    public UserProfileResponseDto getProfile() {
-        return profile;
+    public String getRole() {
+        return role;
     }
 
-    public void setProfile(UserProfileResponseDto profile) {
-        this.profile = profile;
+    public void setRole(String role) {
+        this.role = role;
     }
 }

@@ -1,5 +1,6 @@
 package com.leopold.modules.server.dto.mapper;
 
+import com.leopold.modules.file.dto.mapper.FileResponseMapper;
 import com.leopold.modules.server.dto.ServerUserProfileDto;
 import com.leopold.modules.server.entity.ServerUserEntity;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
@@ -13,9 +14,11 @@ import java.util.Collection;
 import java.util.List;
 
 @Component
-@Mapper(componentModel = "spring", uses = { UserProfileResponseMapper.class })
+@Mapper(componentModel = "spring", uses = { UserProfileResponseMapper.class, FileResponseMapper.class })
 public interface ServerUserMapper {
-    @Mapping(target = "profile", source = "serverUser.user")
+    @Mapping(target = "userId", source = "serverUser.user.userId")
+    @Mapping(target = "username", source = "serverUser.user.username")
+    @Mapping(target = "profilePictureUrl", source = "serverUser.user.profilePicture", qualifiedByName = "getFileUrl")
     ServerUserProfileDto convert(ServerUserEntity serverUser);
 
     List<ServerUserProfileDto> convertList(Collection<ServerUserEntity> list);
