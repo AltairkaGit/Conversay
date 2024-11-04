@@ -1,9 +1,14 @@
 package com.leopold.modules.auth.dto;
 
+import com.leopold.modules.user.entity.UserEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
+
+
 public class AuthRequestDto {
     private String username;
     private String email;
-    private String gender;
+    @Schema
+    private UserEntity.Gender gender;
     private String password;
     public String getUsername() {
         return username;
@@ -11,7 +16,7 @@ public class AuthRequestDto {
     public String getEmail() {
         return email;
     }
-    public String getGender() {
+    public UserEntity.Gender getGender() {
         return gender;
     }
     public String getPassword() {
@@ -24,8 +29,9 @@ public class AuthRequestDto {
         this.email = email;
     }
     public void setGender(String gender) {
-        this.gender = gender;
+        this.gender = UserEntity.Gender.valueOf(gender);
     }
+    public void setGender(UserEntity.Gender gender) { this.gender = gender; }
     public void setPassword(String password) {
         this.password = password;
     }

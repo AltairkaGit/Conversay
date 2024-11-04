@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.leopold.modules.file.entity.FileEntity;
 import jakarta.persistence.*;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "server")
@@ -24,6 +22,10 @@ public class ServerEntity {
     @JoinColumn(name = "picture_id")
     @JsonManagedReference
     private FileEntity serverPicture;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "server")
+    @JsonBackReference
+    private List<ServerChannelEntity> channels;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "server")
     @JsonBackReference
@@ -52,6 +54,22 @@ public class ServerEntity {
 
     public void setServerPicture(FileEntity serverPicture) {
         this.serverPicture = serverPicture;
+    }
+
+    public List<ServerChannelEntity> getChannels() {
+        return channels;
+    }
+
+    public void setChannels(List<ServerChannelEntity> channels) {
+        this.channels = channels;
+    }
+
+    public Set<ServerUserEntity> getServerUsers() {
+        return serverUsers;
+    }
+
+    public void setServerUsers(Set<ServerUserEntity> serverUsers) {
+        this.serverUsers = serverUsers;
     }
 
     @Override

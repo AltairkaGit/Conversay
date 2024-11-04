@@ -5,69 +5,68 @@ import com.leopold.lib.validator.exception.MoreMaxLengthException;
 import com.leopold.lib.validator.exception.WrongEmailException;
 import com.leopold.modules.chat.exception.UserAlreadyInTheChatException;
 import com.leopold.modules.chat.exception.UserNotInTheChatException;
+import com.leopold.modules.file.exception.FileIsTooGreatException;
+import com.leopold.modules.server.exception.UserAlreadyOnServerException;
+import com.leopold.modules.server.exception.UserNotOnServerException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.naming.AuthenticationException;
 import javax.security.auth.login.CredentialException;
+import java.nio.file.AccessDeniedException;
 import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleException(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler({
+            AuthenticationException.class,
+            CredentialException.class,
+            SecurityException.class,
+            AccessDeniedException.class
+    })
+    public ResponseEntity<String> handleSecurity(Exception ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
-    @ExceptionHandler(CredentialException.class)
-    public ResponseEntity<Object> handleCredentialsException(Exception ex) {
+
+    @ExceptionHandler({
+            SignatureException.class,
+            JwtException.class,
+            MalformedJwtException.class,
+    })
+    public ResponseEntity<String> handleDeadToken(Exception ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
+    @ExceptionHandler({
+            WrongEmailException.class,
+            LessMinLengthException.class,
+            MoreMaxLengthException.class,
+            FileIsTooGreatException.class,
+            UserNotInTheChatException.class,
+            UserAlreadyInTheChatException.class,
+            UserAlreadyOnServerException.class,
+            UserNotOnServerException.class,
+            IllegalArgumentException.class
+    })
+    public ResponseEntity<String> handleWrongEmailException(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(WrongEmailException.class)
-    public ResponseEntity<Object> handleWrongEmailException(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(LessMinLengthException.class)
-    public ResponseEntity<Object> handleLessMinLengthException(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-    @ExceptionHandler(MoreMaxLengthException.class)
-    public ResponseEntity<Object> handleMoreMaxLengthException(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<Object> handleNoSuchElementException(Exception ex) {
+    @ExceptionHandler({
+        NoSuchElementException.class
+    })
+    public ResponseEntity<String> handleNoSuchElementException(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NO_CONTENT);
-    }
-
-    @ExceptionHandler(MultipartException.class)
-    public ResponseEntity<Object> handleMultipartException(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(SecurityException.class)
-    public ResponseEntity<Object> handleForbiddenException(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Object> handleUnauthorizedException(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
-    }
-
-    @ExceptionHandler({UserNotInTheChatException.class})
-    public ResponseEntity<Object> userNotInTheChat(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler({UserAlreadyInTheChatException.class})
-    public ResponseEntity<Object> userAlreadyInTheChat(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }

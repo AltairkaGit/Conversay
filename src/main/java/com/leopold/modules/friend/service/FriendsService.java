@@ -2,9 +2,9 @@ package com.leopold.modules.friend.service;
 
 import com.leopold.modules.friend.entity.FriendsEntity;
 import com.leopold.modules.user.entity.UserEntity;
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public interface FriendsService {

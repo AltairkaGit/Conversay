@@ -3,22 +3,27 @@ package com.leopold.modules.user.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.leopold.modules.appRole.entity.AppRoleEntity;
+import com.leopold.modules.chat.entity.ChatEntity;
 import com.leopold.modules.chat.entity.ChatUserEntity;
 import com.leopold.modules.chat.entity.MessageEntity;
+import com.leopold.modules.chat.entity.MessageSeenEntity;
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.friend.entity.FriendsEntity;
 import com.leopold.modules.server.entity.ServerUserEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "user")
 public class UserEntity {
-    public enum Gender {male, female};
+    @Schema
+    public enum Gender { male, female };
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,6 +62,10 @@ public class UserEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     @JsonBackReference
     private Set<ChatUserEntity> myChats;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @JsonBackReference
+    private Set<MessageSeenEntity> seenMessages;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "sender")
     @JsonBackReference
@@ -107,7 +116,7 @@ public class UserEntity {
     }
 
     public List<AppRoleEntity> getRoles() {
-        return roles;
+        return roles == null ? List.of() : roles;
     }
 
     public Optional<FileEntity> getProfilePicture() {
@@ -131,8 +140,8 @@ public class UserEntity {
         return imFriendOf;
     }
 
-    public Set<ChatUserEntity> getMyChats() {
-        return myChats;
+    public Set<ChatEntity> getMyChats() {
+        return myChats.stream().map(ChatUserEntity::getChat).collect(Collectors.toSet());
     }
 
     public Set<MessageEntity> getMessages() {
@@ -169,11 +178,7 @@ public class UserEntity {
         if (obj == null || getClass() != obj.getClass()) return false;
 
         UserEntity user = (UserEntity) obj;
-        return user.getUserId().equals(userId) &&
-                user.getUsername().equals(username) &&
-                user.getEmail().equals(email) &&
-                user.getGender().equals(gender) &&
-                user.getPassword().equals(password);
+        return user.getUserId().equals(userId);
     }
 
     @Override

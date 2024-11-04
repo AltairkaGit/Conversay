@@ -1,5 +1,6 @@
 package com.leopold.modules.user.dto.mapper;
 
+import com.leopold.modules.user.dto.MyProfileDto;
 import com.leopold.modules.user.dto.UserProfileResponseDto;
 import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.file.dto.mapper.FileResponseMapper;
@@ -18,6 +19,9 @@ public interface UserProfileResponseMapper extends Converter<UserEntity, UserPro
 
     @Mapping(target = "profilePictureUrl", source = "profilePicture", qualifiedByName = "getFileUrl")
     UserProfileResponseDto convert(UserEntity user);
+
+    @Mapping(target = "profilePictureUrl", source = "profilePicture", qualifiedByName = "getFileUrl")
+    MyProfileDto convertMyProfile(UserEntity user);
 
     List<UserProfileResponseDto> convertList(List<UserEntity> users);
     default Page<UserProfileResponseDto> convertPage(Page<UserEntity> page) {

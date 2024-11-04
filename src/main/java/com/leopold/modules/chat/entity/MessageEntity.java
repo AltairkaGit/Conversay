@@ -1,11 +1,15 @@
 package com.leopold.modules.chat.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.user.entity.UserEntity;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name="message")
@@ -30,6 +34,18 @@ public class MessageEntity {
     @JoinColumn(name = "replying_message_id")
     @JsonManagedReference
     private MessageEntity reply;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "message_file",
+            joinColumns = {@JoinColumn(name = "message_id", referencedColumnName = "message_id")},
+            inverseJoinColumns = {@JoinColumn(name = "file_id", referencedColumnName = "file_id")})
+    @JsonManagedReference
+    private List<FileEntity> attachedFiles;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "message")
+    @JsonBackReference
+    private Set<MessageSeenEntity> lookedUsers;
+
     public Long getMessageId() {
         return messageId;
     }
@@ -76,6 +92,18 @@ public class MessageEntity {
 
     public void setReply(MessageEntity reply) {
         this.reply = reply;
+    }
+
+    public List<FileEntity> getAttachedFiles() {
+        return attachedFiles;
+    }
+
+    public void setAttachedFiles(List<FileEntity> attachedFiles) {
+        this.attachedFiles = attachedFiles;
+    }
+
+    public Set<MessageSeenEntity> getLookedUsers() {
+        return lookedUsers;
     }
 
     @Override

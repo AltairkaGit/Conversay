@@ -1,5 +1,6 @@
 package com.leopold.modules.server.entity;
 
+import com.leopold.modules.server.entity.key.ServerUserKey;
 import com.leopold.modules.user.entity.UserEntity;
 import jakarta.persistence.*;
 
@@ -8,24 +9,23 @@ import java.util.Objects;
 @Entity
 @Table(name = "server_user")
 public class ServerUserEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "server_user_id")
-    private Long serverUserId;
-
+    @EmbeddedId
+    private ServerUserKey id;
     @ManyToOne
+    @MapsId("user_id")
     @JoinColumn(name = "user_id")
     private UserEntity user;
     @ManyToOne
+    @MapsId("server_id")
     @JoinColumn(name = "server_id")
     private ServerEntity server;
 
-    public Long getServerUserId() {
-        return serverUserId;
+    public ServerUserKey getId() {
+        return id;
     }
 
-    public void setServerUserId(Long serverUserId) {
-        this.serverUserId = serverUserId;
+    public void setId(ServerUserKey id) {
+        this.id = id;
     }
 
     public UserEntity getUser() {
@@ -49,11 +49,11 @@ public class ServerUserEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ServerUserEntity that = (ServerUserEntity) o;
-        return Objects.equals(serverUserId, that.serverUserId) && Objects.equals(user, that.user) && Objects.equals(server, that.server);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(serverUserId, user, server);
+        return Objects.hash(id);
     }
 }

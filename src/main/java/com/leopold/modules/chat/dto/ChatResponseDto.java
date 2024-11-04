@@ -1,12 +1,17 @@
 package com.leopold.modules.chat.dto;
 
 import com.leopold.modules.chat.entity.ChatEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class ChatResponseDto {
     private Long chatId;
     private String chatName;
     private String chatPictureUrl;
+    @Schema
     private ChatEntity.ChatType chatType;
+    private MessageResponseDto lastMessage;
+    private long unreadMessages;
+    private long chatUsersCount;
 
     public Long getChatId() {
         return chatId;
@@ -38,5 +43,29 @@ public class ChatResponseDto {
 
     public void setChatType(ChatEntity.ChatType chatType) {
         this.chatType = chatType;
+    }
+
+    public MessageResponseDto getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(MessageResponseDto lastMessage) {
+        this.lastMessage = lastMessage;
+    }
+
+    public long getUnreadMessages() {
+        return unreadMessages;
+    }
+
+    public void setUnreadMessages(long unreadMessages) {
+        this.unreadMessages = unreadMessages;
+    }
+
+    public long getChatUsersCount() {
+        return chatUsersCount;
+    }
+
+    public void setChatUsersCount(long chatUsersCount) {
+        this.chatUsersCount = chatUsersCount;
     }
 }

@@ -1,40 +1,33 @@
 package com.leopold.modules.security.jwt.impl;
 
 import com.leopold.modules.appRole.entity.AppRoleEntity;
+import com.leopold.modules.security.entity.RefreshTokenEntity;
 import com.leopold.modules.security.jwt.JwtTokenProvider;
+import com.leopold.modules.security.repos.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
+
 import javax.crypto.SecretKey;
+import javax.naming.AuthenticationException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProviderImpl implements JwtTokenProvider {
-    @Value("${jwt.token.prefix}")
-    private String tokenHeader;
     @Value("${jwt.token.secret}")
     private String secret;
     private SecretKey key;
-    @Value("${jwt.token.expired}")
-    private long expiredMs;
-
-    private final UserDetailsService userDetailsService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    public JwtTokenProviderImpl(@Qualifier("jwtUserDetailService") UserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
+    public JwtTokenProviderImpl(RefreshTokenRepository refreshTokenRepository) {
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     @PostConstruct
@@ -44,11 +37,15 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public String createToken(Long userId, String username, List<AppRoleEntity> roles) {
-        Claims claims = Jwts.claims().setSubject(username).setId(userId.toString());
-        claims.put("AppRoles", mapAppRolesToStrings(roles));
+    public String generateAccess(String refresh) throws AuthenticationException {
+        Jws<Claims> refreshClaims = getClaims(refresh);
+        Claims claims = Jwts.claims().setId(refreshClaims.getBody().getId());
+        Optional<RefreshTokenEntity> entity = refreshTokenRepository.findByRefresh(refresh);
+        claims.put("TokenId", entity.get().getTokenId().toString());
         Date now = new Date();
-        Date expired = new Date(now.getTime() + expiredMs);
+        Date expired = new Date(now.getTime() + EXPIRED_ACCESS_MS);
+        Date refreshExpired = getExpiration(getClaims(refresh));
+        expired = expired.before(refreshExpired) ? expired : refreshExpired;
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
@@ -58,49 +55,111 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public Authentication getAuthentication(String token) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(getUsername(token));
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    public String generateRefresh(Long userId, List<AppRoleEntity> roles) {
+        Claims claims = Jwts.claims().setId(userId.toString());
+        claims.put("AppRoles", mapAppRolesToStrings(roles));
+        Date now = new Date();
+        Date expired = new Date(now.getTime() + EXPIRED_REFRESH_MS);
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expired)
+                .signWith(key)
+                .compact();
     }
 
     @Override
-    public String getUsername(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
+    public RefreshTokenEntity createRefresh(Long userId, String refresh) {
+        RefreshTokenEntity refreshTokenEntity = new RefreshTokenEntity();
+        refreshTokenEntity.setRefresh(refresh);
+        refreshTokenEntity.setUserId(userId);
+        refreshTokenRepository.saveAndFlush(refreshTokenEntity);
+        return  refreshTokenEntity;
     }
 
     @Override
-    public Long getUserId(String token) {
-        String id = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getId();
+    public boolean validateAccess(String access) throws AuthenticationException {
+        String refresh = getRefreshFromAccess(access).get().getRefresh();
+        return validateRefresh(refresh);
+    }
+
+    @Override
+    public boolean validateRefresh(String refresh) throws AuthenticationException {
+        String lookup = refresh.length() > 500 ? refresh.substring(0, 500) : refresh;
+        Optional<RefreshTokenEntity> refreshTokenEntity = refreshTokenRepository.findByRefresh(lookup);
+        if (refreshTokenEntity.isEmpty()) return false;
+        Jws<Claims> claims = getClaims(refresh);
+        long refreshTokenEntityUserId = refreshTokenEntity.get().getUserId();
+        long tokenUserId = Long.parseLong(claims.getBody().getId());
+        return refreshTokenEntityUserId == tokenUserId;
+    }
+
+    @Override
+    public Jws<Claims> getClaims(String token) throws AuthenticationException {
+        try {
+            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+        }
+        catch (Exception ex) {
+            throw new AuthenticationException(ex.getMessage());
+        }
+
+    }
+
+    @Override
+    public Optional<RefreshTokenEntity> getRefreshFromAccess(String access) throws AuthenticationException {
+        Jws<Claims> claims = getClaims(access);
+        return refreshTokenRepository.findByTokenId(getTokenId(claims));
+    }
+
+    @Override
+    public String getAppRolesFromRefresh(Jws<Claims> claims) {
+        return (String)claims.getBody().get("AppRoles");
+    }
+
+    @Override
+    public String getAppRolesFromAccess(Jws<Claims> claims) throws AuthenticationException {
+        Jws<Claims> refreshClaims = getRefreshClaimsFromAccessClaims(claims);
+        return getAppRolesFromRefresh(refreshClaims);
+    }
+
+    @Override
+    public Date getExpiration(String token) throws AuthenticationException {
+        return getExpiration(getClaims(token));
+    }
+
+    @Override
+    public Long getUserId(String token) throws AuthenticationException {
+        return getUserId(getClaims(token));
+    }
+
+    @Override
+    public Long getTokenId(String access) throws AuthenticationException {
+        return getTokenId(getClaims(access));
+    }
+
+    private Long getUserId(Jws<Claims> claims) {
+        String id = claims.getBody().getId();
         return Long.parseLong(id);
     }
 
-    @Override
-    public boolean validateToken(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            Date expired = claims.getBody().getExpiration();
-            return !expired.before(new Date());
-        } catch (JwtException e) {
-            //throw new JwtAuthenticationException("JWT token is expired or invalid: " + e.getMessage());
-            return false;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
+    private Date getExpiration(Jws<Claims> claims) {
+        return claims.getBody().getExpiration();
     }
 
-    @Override
-    public String resolveToken(HttpServletRequest req) {
-        Cookie[] cookies = req.getCookies();
-        if (cookies == null) return null;
-        for (var cookie : cookies) {
-            if (tokenHeader.equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return null;
+    private Long getTokenId(Jws<Claims> claims) {
+        String tokenId = String.valueOf(claims.getBody().get("TokenId"));
+        double d = Double.parseDouble(tokenId);
+        return (long)d;
     }
 
     private static List<String> mapAppRolesToStrings (List<AppRoleEntity> roles) {
         return roles.stream().map(AppRoleEntity::getRole).collect(Collectors.toList());
     }
+
+    private Jws<Claims> getRefreshClaimsFromAccessClaims(Jws<Claims> claims) throws AuthenticationException {
+        String refresh = refreshTokenRepository.findByTokenId(getTokenId(claims)).get().getRefresh();
+        return getClaims(refresh);
+    }
+
+
 }

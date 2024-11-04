@@ -9,5 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface FileRepository extends JpaRepository<FileEntity, Long> {
-    Optional<FileEntity> findByUrl(@Param("url") String url);
+    Optional<FileEntity> findByName(@Param("filename") String filename);
 }

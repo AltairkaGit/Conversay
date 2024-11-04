@@ -2,10 +2,13 @@ HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
-!**/src/test/**/target/
+!**/src/test/**
 
 ### Environment ###
 env.properties
+
+### Dev ###
+docker-compose-dev.yml
 
 ### STS ###
 .apt_generated
@@ -34,3 +37,4 @@ build/
 
 ### VS Code ###
 .vscode/
+/src/test/

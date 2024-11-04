@@ -4,13 +4,13 @@ import com.leopold.modules.user.entity.UserEntity;
 import com.leopold.modules.user.repos.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
-@Service("jwtUserDetailService")
+@Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
 
@@ -20,9 +20,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<UserEntity> user = userRepository.findByUsername(username);
-        if (user.isEmpty()) throw new UsernameNotFoundException("Can't find user with username: " + username);
+    public UserDetails loadByUserId(Long userId)  {
+        Optional<UserEntity> user = userRepository.findById(userId);
+        if (user.isEmpty()) throw new NoSuchElementException("user not found to construct details");
         return UserDetailsFactory.create(user.get());
     }
 }

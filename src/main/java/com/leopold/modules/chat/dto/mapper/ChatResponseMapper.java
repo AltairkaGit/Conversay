@@ -1,5 +1,8 @@
 package com.leopold.modules.chat.dto.mapper;
 
+import com.leopold.modules.chat.entity.MessageEntity;
+import com.leopold.modules.file.dto.mapper.FileResponseMapper;
+import com.leopold.modules.file.service.FileService;
 import com.leopold.modules.user.dto.mapper.UserProfileResponseMapper;
 import com.leopold.modules.chat.dto.ChatResponseDto;
 import com.leopold.modules.chat.entity.ChatEntity;
@@ -13,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,48 +25,60 @@ import java.util.stream.Collectors;
 @Component
 @Mapper(componentModel = "spring")
 public abstract class ChatResponseMapper {
-    protected final String defaultChatPictureUrl = "http://localhost:8080/storage/defaultServer.png";
     @Autowired
     protected ChatService chatService;
     @Autowired
     protected MessageService messageService;
-
     @Autowired
-    protected MessageResponseMapper messageResponseMapper;
-
+    protected MessageMapper messageMapper;
     @Autowired
     protected UserProfileResponseMapper userProfileResponseMapper;
+    @Autowired
+    protected FileResponseMapper fileResponseMapper;
+    @Autowired
+    protected FileService fileService;
 
     public ChatResponseDto convert(ChatEntity chat, UserEntity me) {
         ChatResponseDto chatResponseDto = new ChatResponseDto();
+
         chatResponseDto.setChatId(chat.getChatId());
         chatResponseDto.setChatType(chat.getChatType());
+        chatResponseDto.setChatUsersCount(chatService.countChatUsers(chat));
+        chatResponseDto.setUnreadMessages(chatService.countUnreadMessages(chat, me, Timestamp.from(Instant.now())));
+        Optional<MessageEntity> lastMessage = messageService.getLastMessage(chat);
+        lastMessage.ifPresent(message -> chatResponseDto.setLastMessage(messageMapper.convert(message, me)));
+
+        // Set chatName and picture depends on type of the chat
+        //direct chat
         if (chatResponseDto.getChatType() == ChatEntity.ChatType.direct) {
             Optional<UserEntity> userEntity = chatService.getChatUsers(chat)
-                    .filter(user -> !user.getUserId().equals(me.getUserId()))
-                    .findAny();
+                    .filter(user -> !user.equals(me))
+                    .findFirst();
             if (userEntity.isPresent()) {
                 UserEntity companion = userEntity.get();
                 chatResponseDto.setChatName(companion.getUsername());
                 Optional<FileEntity> picture = companion.getProfilePicture();
-                picture.ifPresent(fileEntity -> chatResponseDto.setChatPictureUrl(fileEntity.getUrl()));
+                chatResponseDto.setChatPictureUrl(fileResponseMapper.map(picture));
             }
         }
+        //group chat
         else if (chatResponseDto.getChatType() == ChatEntity.ChatType.conversation) {
             chatResponseDto.setChatName(chat.getChatName());
             Optional<FileEntity> picture = chat.getChatPicture();
-            picture.ifPresent(fileEntity -> chatResponseDto.setChatPictureUrl(fileEntity.getUrl()));
+            chatResponseDto.setChatPictureUrl(fileResponseMapper.map(picture));
         }
+        //still no picture
         if (chatResponseDto.getChatPictureUrl() == null) {
-            chatResponseDto.setChatPictureUrl(defaultChatPictureUrl);
+            chatResponseDto.setChatPictureUrl(fileService.composeUrl("defaultServer.png"));
         }
+        //still no name
         if (chatResponseDto.getChatName() == null) {
             int count = 3;
             String chatName = chatService.getChatUsers(chat)
                             .map(UserEntity::getUsername)
                             .limit(count)
                             .collect(Collectors.joining(", "));
-            if (chatService.getChatUsers(chat).count() > count)
+            if (chatService.getChatUsers(chat).limit(count + 1).count() > count)
                 chatName += "...";
             chatResponseDto.setChatName(chatName);
         }

@@ -1,6 +1,7 @@
 package com.leopold.modules.chat.dto;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 public class MessageResponseDto {
     private Long messageId;
@@ -10,6 +11,7 @@ public class MessageResponseDto {
     private Long senderId;
     private Long replyId;
     private String replyContent;
+    private List<String> fileUrls;
 
     public Long getMessageId() {
         return messageId;
@@ -65,5 +67,13 @@ public class MessageResponseDto {
 
     public void setReplyContent(String replyContent) {
         this.replyContent = replyContent;
+    }
+
+    public List<String> getFileUrls() {
+        return fileUrls;
+    }
+
+    public void setFileUrls(List<String> fileUrls) {
+        this.fileUrls = fileUrls;
     }
 }

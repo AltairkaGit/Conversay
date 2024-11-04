@@ -1,9 +1,7 @@
 package com.leopold.config;
 
-import com.leopold.modules.security.chatAuthorization.ChatAuthorizationConfigurer;
-import com.leopold.modules.security.jwt.JwtTokenConfigurer;
-import com.leopold.modules.security.jwt.JwtTokenProvider;
-import com.leopold.modules.chat.service.ChatService;
+import com.leopold.modules.security.composer.FilterComposer;
+import com.leopold.modules.security.configurer.FiltersConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,14 +9,14 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -28,14 +26,15 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final JwtTokenProvider jwtTokenProvider;
-    private final ChatService chatService;
-    private final String storage = "/storage/**";
-    private final String[] login = {
-            "/api/v1/login",
-            "/api/v1/auth"
-    };
-    private final String[] swagger = {
+    private final FilterComposer filterComposer;
+    public final static String[] permitted = {
+            "/storage/**",
+
+            "/api/v**/login",
+            "/api/v**/auth",
+            "/api/v**/refresh",
+            "/api/v**/hello-world",
+
             "/v3/api-docs/**",
             "/configuration/ui",
             "/swagger-resources/**",
@@ -44,55 +43,68 @@ public class SecurityConfig {
             "/webjars/**",
             "/swagger-ui/**",
             "/swagger-ui/index.html",
-            "/swagger-ui/index.html/**"
-    };
+            "/swagger-ui/index.html/**",
 
-    private final String[] ws = {
             "/ws/**",
             "/app/**"
     };
-
+    public final static List<String> permittedList = Arrays.asList(permitted);
     @Autowired
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider, ChatService chatService) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.chatService = chatService;
+    public SecurityConfig(FilterComposer filterComposer) {
+        this.filterComposer = filterComposer;
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
+    @Order(1)
+    public SecurityFilterChain apiV1(HttpSecurity http) throws Exception {
+        return apiHttpSecurity(http, "/api/v1/**").build();
     }
 
     @Bean
+    @Order(2)
+    public SecurityFilterChain apiV2(HttpSecurity http) throws Exception {
+        return apiHttpSecurity(http, "/api/v2/**").build();
+    }
+
+    private HttpSecurity apiHttpSecurity(HttpSecurity http, String securityMatcher) throws Exception {
+        http
+                .securityMatcher(securityMatcher)
+                .cors(withDefaults())
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(permitted).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .apply(new FiltersConfigurer(filterComposer));
+        return http;
+    }
+
+    @Bean
+    @Order(3)
     public SecurityFilterChain base(HttpSecurity http) throws Exception {
         http
                 .cors(withDefaults())
-                .httpBasic().disable()
-                .csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(storage).permitAll()
-                        .requestMatchers(swagger).permitAll()
-                        .requestMatchers(login).permitAll()
-                        .requestMatchers(ws).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .apply(new JwtTokenConfigurer(jwtTokenProvider))
-                .and()
-                .apply(new ChatAuthorizationConfigurer(chatService));
+                        .requestMatchers(permitted).permitAll()
+                        .anyRequest().authenticated());
         return http.build();
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "PUT", "POST", "DELETE", "UPDATE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("X-Requested-With", "X-HTTP-Method-Override", "Content-Type", "Accept", "Authorization", "Set-Cookie"));
+        configuration.addAllowedOriginPattern("*");
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 }

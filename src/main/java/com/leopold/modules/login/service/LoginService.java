@@ -1,12 +1,19 @@
 package com.leopold.modules.login.service;
 
+import com.leopold.modules.login.dto.TokensResponseDto;
 import com.leopold.modules.user.entity.UserEntity;
-import jakarta.transaction.Transactional;
 import org.springframework.http.HttpHeaders;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.naming.AuthenticationException;
+import javax.security.auth.login.CredentialException;
 
 @Transactional
 public interface LoginService {
-    String jwtLoginUsernamePassword(UserEntity user, String rawPassword);
+    TokensResponseDto jwtLoginUsernamePassword(UserEntity user, String rawPassword) throws CredentialException;
+    boolean checkPassword(UserEntity user, String rawPassword);
+    TokensResponseDto refreshToken(String refresh) throws AuthenticationException;
+    void logoutSession(String access) throws AuthenticationException;
+    void logoutAllSessions(String access) throws AuthenticationException;
     HttpHeaders setJwtCookieInHeaders(HttpHeaders old, String token);
-    HttpHeaders removeJwtCookieFromHeaders(HttpHeaders old);
 }
