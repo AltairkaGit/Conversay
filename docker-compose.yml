@@ -6,7 +6,7 @@ services:
     ports:
       - "46877:5432"
     volumes:
-      - /home/k-admin/postgres/convy/data/db/data/:/var/lib/postgresql/data/
+      - /home/morgen/postgres/convy/data/db/data/:/var/lib/postgresql/data/
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -28,7 +28,7 @@ services:
     expose:
       - 80
     volumes:
-      - /home/k-admin/convy/:/app/
+      - /home/morgen/convy/:/app/
 networks:
   netgt:
     driver: bridge
