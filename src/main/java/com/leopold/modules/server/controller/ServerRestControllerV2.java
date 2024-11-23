@@ -152,22 +152,16 @@ public class ServerRestControllerV2 {
     }
 
     @SubscribeMapping("/queue/conversation/{conversationId}")
-    public void subscribeChat(
+    public void subscribeTalk(
             SimpMessageHeaderAccessor accessor,
             @DestinationVariable("conversationId") String conversation
     ) {
         String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
         System.out.println("User: " + myId + " subscribed conversation " + conversation);
-        //Set<String> room = conversationService.getRoomCopy(conversation);
-        //conversationService.attachUser(conversation, myId);
-
-
-        //todo: сосать член, сделать conversationEven json, потом сделать '/app/conversation/{chatId}/leave'
-        //messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
     }
 
     @MessageMapping("/conversation/{conversationId}")
-    public void sendMessage(
+    public void sendSDP(
             SimpMessageHeaderAccessor accessor,
             @DestinationVariable("conversationId") String conversation,
             String sessionDescriptionProtocol
@@ -178,11 +172,12 @@ public class ServerRestControllerV2 {
         messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
     }
 
-    @SubscribeMapping("/conversation/blind/queue")
+    @SubscribeMapping("/queue/conversation/blind/queue")
     public void getInBlindTalkQueue(
             SimpMessageHeaderAccessor accessor
     ) {
         String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
+        System.out.println("User: " + myId + " attempted to attach queue");
 
         conversationService.attachUserToQueue(myId);
     }
