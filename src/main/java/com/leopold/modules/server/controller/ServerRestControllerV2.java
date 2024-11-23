@@ -177,18 +177,14 @@ public class ServerRestControllerV2 {
 
         messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
     }
-    /*
-    @MessageMapping("/conversation/new")
-    public void startConversation(
-            SimpMessageHeaderAccessor accessor,
-            String chatId
+
+    @SubscribeMapping("/conversation/blind/queue")
+    public void getInBlindTalkQueue(
+            SimpMessageHeaderAccessor accessor
     ) {
         String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
 
-        //пизжу с бд id челов у которых есть этот канал
-
-        for (userId : users)
-            messagingTemplate.convertAndSendToUser(userId, "/app/queue/conversation/new", chatlId);
+        conversationService.attachUserToQueue(myId);
     }
-    */
+
 }
