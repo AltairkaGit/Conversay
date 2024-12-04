@@ -73,7 +73,7 @@ public class ConversationServiceImpl implements ConversationService {
             for (String userId : users) {
                 System.out.println("Отправляем " + userId + " conversation " + conversation);
                 attachUser(conversation, userId);
-                messagingTemplate.convertAndSend("/user/" + userId + "/queue/conversation/blind/queue", conversation);
+                messagingTemplate.convertAndSend("/app/user/" + userId + "/queue/conversation/blind/queue", conversation);
             }
         }
     }
