@@ -44,14 +44,14 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
-    public void attachUserToQueue(String userId, String subscriptionId) {
+    public void attachUserToQueue(String userId) {
         queue.add(userId);
         System.out.println("User " + userId + " added to queue, size: " + queue.size());
-        executorService.submit(() -> tryToMakeConversation(2, subscriptionId));
+        executorService.submit(() -> tryToMakeConversation(2));
         System.out.println("Attach finished, user  " + userId);
     }
 
-    private void tryToMakeConversation(int usersInConversation, String subscriptionId) {
+    private void tryToMakeConversation(int usersInConversation) {
         boolean success = false;
         System.out.println("inside executor");
         String[] users = new String[usersInConversation];
@@ -73,7 +73,7 @@ public class ConversationServiceImpl implements ConversationService {
             for (String userId : users) {
                 System.out.println("Отправляем " + userId + " conversation " + conversation);
                 attachUser(conversation, userId);
-                messagingTemplate.convertAndSendToUser(subscriptionId, "/queue/conversation/blind/queue", conversation);
+                messagingTemplate.convertAndSend("/user/" + userId + "/queue/conversation/blind/queue", conversation);
             }
         }
     }

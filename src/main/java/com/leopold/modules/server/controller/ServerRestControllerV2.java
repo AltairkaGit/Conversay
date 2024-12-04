@@ -173,16 +173,17 @@ public class ServerRestControllerV2 {
         messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
     }
 
-    @SubscribeMapping("/queue/conversation/blind/queue")
+    @SubscribeMapping("/user/{userId}/queue/conversation/blind/queue")
     public void getInBlindTalkQueue(
-            SimpMessageHeaderAccessor accessor
+            SimpMessageHeaderAccessor accessor,
+            @DestinationVariable("userId") String userId
     ) {
         String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
-        String subscriptionId = accessor.getSubscriptionId();
-        System.out.println("User: " + myId + " attempted to attach queue");
+        System.out.println("User: " + myId + " attempted to attach queue, userId: " + userId);
         System.out.println(accessor);
-
-        conversationService.attachUserToQueue(myId, subscriptionId);
+        if (myId.equals(userId)) {
+            conversationService.attachUserToQueue(myId);
+        }
     }
 
 }
