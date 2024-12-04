@@ -158,6 +158,7 @@ public class ServerRestControllerV2 {
     ) {
         String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
         System.out.println("User: " + myId + " subscribed conversation " + conversation);
+        System.out.println("===========================================================");
     }
 
     @MessageMapping("/conversation/{conversationId}")
@@ -172,7 +173,7 @@ public class ServerRestControllerV2 {
         messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
     }
 
-    @SubscribeMapping("/queue/conversation/blind/queue")
+    @SubscribeMapping("/queue/blind/queue")
     public void getInBlindTalkQueue(
             SimpMessageHeaderAccessor accessor
     ) {
