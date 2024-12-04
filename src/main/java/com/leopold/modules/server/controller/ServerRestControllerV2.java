@@ -178,6 +178,7 @@ public class ServerRestControllerV2 {
     ) {
         String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
         System.out.println("User: " + myId + " attempted to attach queue");
+        System.out.println(accessor);
 
         conversationService.attachUserToQueue(myId);
     }
