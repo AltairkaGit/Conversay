@@ -6,7 +6,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - C:/Program Files/PostgreSQL/15/data/:/var/lib/postgresql/data/
+      - C:/convy/data/:/var/lib/postgresql/data/
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}

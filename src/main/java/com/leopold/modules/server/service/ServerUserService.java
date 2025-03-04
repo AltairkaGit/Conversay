@@ -12,10 +12,10 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface ServerUserService {
-    Optional<ServerUserEntity> getServerUser(long serverId, long userId);
-    void addUser(long serverId, long userId) throws UserAlreadyOnServerException;
-    void kickUser(long serverId, long userId) throws UserNotOnServerException;
-    void kickUsers(long serverId, Collection<Long> userIds);
+    Optional<ServerUserEntity> getServerUser(String serverId, long userId);
+    void addUser(String serverId, long userId) throws UserAlreadyOnServerException;
+    void kickUser(String serverId, long userId) throws UserNotOnServerException;
+    void kickUsers(String serverId, Collection<Long> userIds);
     Page<ServerUserEntity> getServerUsers(ServerEntity server, Pageable pageable);
     Page<ServerEntity> getUserServers(UserEntity user, Pageable pageable);
 }

@@ -8,7 +8,7 @@ import java.util.Objects;
 
 @Embeddable
 public class ServerUserKey implements Serializable {
-    public static ServerUserKey valueOf(Long userId, Long serverId) {
+    public static ServerUserKey valueOf(Long userId, String serverId) {
         ServerUserKey res = new ServerUserKey();
         res.setServerId(serverId);
         res.setUserId(userId);
@@ -19,7 +19,7 @@ public class ServerUserKey implements Serializable {
     private Long userId;
 
     @Column(name = "server_id")
-    private Long serverId;
+    private String serverId;
 
     public Long getUserId() {
         return userId;
@@ -29,11 +29,11 @@ public class ServerUserKey implements Serializable {
         this.userId = userId;
     }
 
-    public Long getServerId() {
+    public String getServerId() {
         return serverId;
     }
 
-    public void setServerId(Long serverId) {
+    public void setServerId(String serverId) {
         this.serverId = serverId;
     }
 

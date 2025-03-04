@@ -12,9 +12,9 @@ public class ServerChannelEntity {
     @Schema
     public enum ChannelType {text, voice}
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "channel_id")
-    private Long channelId;
+    private String channelId;
     @Column(name = "channel_name")
     private String channelName;
 
@@ -29,11 +29,11 @@ public class ServerChannelEntity {
     @Column(name = "channel_type")
     private String channelType;
 
-    public Long getChannelId() {
+    public String getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(Long channelId) {
+    public void setChannelId(String channelId) {
         this.channelId = channelId;
     }
 

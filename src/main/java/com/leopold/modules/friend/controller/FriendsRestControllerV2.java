@@ -72,6 +72,15 @@ public class FriendsRestControllerV2 {
         return ResponseEntity.ok(res);
     }
 
+    @GetMapping(value="/offersCount")
+    @Operation(summary = "get a count of incoming friend offers")
+    public ResponseEntity<Long> getOffersCount(
+            @RequestAttribute("reqUserId") Long userId
+    ) {
+        UserEntity me = userService.getUserById(userId);
+        return ResponseEntity.ok(friendsService.getOffersCount(me));
+    }
+
     @PostMapping(value="/offer")
     @Operation(summary = "send friends offer to user, 200 if ok, 404 otherwise")
     public ResponseEntity<Void> sendOffer(

@@ -11,9 +11,9 @@ import java.util.*;
 @Table(name = "server")
 public class ServerEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "server_id", nullable = false)
-    private Long serverId;
+    private String serverId;
 
     @Column(name = "servername", nullable = false)
     private String servername;
@@ -31,11 +31,11 @@ public class ServerEntity {
     @JsonBackReference
     private Set<ServerUserEntity> serverUsers;
 
-    public Long getServerId() {
+    public String getServerId() {
         return serverId;
     }
 
-    public void setServerId(Long serverId) {
+    public void setServerId(String serverId) {
         this.serverId = serverId;
     }
 

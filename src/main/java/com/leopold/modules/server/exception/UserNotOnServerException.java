@@ -1,7 +1,7 @@
 package com.leopold.modules.server.exception;
 
 public class UserNotOnServerException extends RuntimeException {
-    public UserNotOnServerException(long serverId, long userId) {
+    public UserNotOnServerException(String serverId, long userId) {
         super("User: " + userId + " not on the server: " + serverId);
     }
 }

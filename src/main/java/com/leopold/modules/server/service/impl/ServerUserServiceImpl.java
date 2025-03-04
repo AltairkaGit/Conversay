@@ -25,26 +25,26 @@ public class ServerUserServiceImpl implements ServerUserService {
     }
 
     @Override
-    public Optional<ServerUserEntity> getServerUser(long serverId, long userId) {
+    public Optional<ServerUserEntity> getServerUser(String serverId, long userId) {
         return serverUserRepository.findByServerServerIdAndUserUserId(serverId, userId);
     }
 
     @Override
-    public void addUser(long serverId, long userId) throws UserAlreadyOnServerException {
+    public void addUser(String serverId, long userId) throws UserAlreadyOnServerException {
         Optional<ServerUserEntity> serverUser = serverUserRepository.findByServerServerIdAndUserUserId(serverId, userId);
         if (serverUser.isPresent()) throw new UserAlreadyOnServerException(serverId, userId);
         serverUserRepository.createServerUser(serverId, userId);
     }
 
     @Override
-    public void kickUser(long serverId, long userId) throws UserNotOnServerException {
+    public void kickUser(String serverId, long userId) throws UserNotOnServerException {
         Optional<ServerUserEntity> serverUser = serverUserRepository.findByServerServerIdAndUserUserId(serverId, userId);
         if (serverUser.isEmpty()) throw new UserNotOnServerException(serverId, userId);
         serverUserRepository.delete(serverUser.get());
     }
 
     @Override
-    public void kickUsers(long serverId, Collection<Long> userIds) {
+    public void kickUsers(String serverId, Collection<Long> userIds) {
         serverUserRepository.deleteAllByUserUserIdInAndServerServerId(userIds, serverId);
     }
 

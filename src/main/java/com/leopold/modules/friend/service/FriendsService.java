@@ -11,6 +11,7 @@ public interface FriendsService {
     Page<UserEntity> getFriends(UserEntity user, Pageable pageable);
     Page<UserEntity> getOffers(UserEntity user, Pageable pageable);
     void sendOffer(UserEntity from, UserEntity to);
+    Long getOffersCount(UserEntity me);
     FriendsEntity getOffer(UserEntity from, UserEntity to);
     void deleteFriend(UserEntity from, UserEntity to);
     void acceptOffer(FriendsEntity offer);

@@ -16,6 +16,7 @@ import java.util.Optional;
 @Repository
 public interface FriendsRepository extends JpaRepository<FriendsEntity, FriendsKey>, JpaSpecificationExecutor<FriendsEntity> {
     Optional<FriendsEntity> findByMeAndFriend(UserEntity me, UserEntity friend);
+    Long countFriendsEntitiesByMeIsAndConfirmedDateIsNull(UserEntity friend);
     default Page<UserEntity> findFriendsByUserId(Long userId, Pageable pageable) {
         Specification<FriendsEntity> getFriends = getFriendsAndOffers(userId).and((root, query, cb) -> cb.isNotNull(root.get("confirmedDate")));
         Page<FriendsEntity> friends = findAll(getFriends, pageable);

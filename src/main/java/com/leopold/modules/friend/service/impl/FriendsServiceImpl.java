@@ -41,6 +41,11 @@ public class FriendsServiceImpl implements FriendsService {
     }
 
     @Override
+    public Long getOffersCount(UserEntity me) {
+        return friendsRepository.countFriendsEntitiesByMeIsAndConfirmedDateIsNull(me);
+    }
+
+    @Override
     public FriendsEntity getOffer(UserEntity from, UserEntity to) {
         Optional<FriendsEntity> offer = friendsRepository.findByMeAndFriend(to, from);
         if (offer.isEmpty()) throw new NoSuchElementException("no offer sent from user1Id: " + from.getUserId() + " to user2Id: " + to.getUserId());

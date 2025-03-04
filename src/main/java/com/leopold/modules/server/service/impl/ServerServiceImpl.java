@@ -43,13 +43,13 @@ public class ServerServiceImpl implements ServerService {
     }
 
     @Override
-    public boolean checkIfServerUser(UserEntity user, Long serverId) {
+    public boolean checkIfServerUser(UserEntity user, String serverId) {
         Optional<ServerUserEntity> serverUser = serverUserService.getServerUser(serverId, user.getUserId());
         return serverUser.isPresent();
     }
 
     @Override
-    public Optional<ServerEntity> getServerById(Long serverId) {
+    public Optional<ServerEntity> getServerById(String serverId) {
         return serverRepository.findById(serverId);
     }
 }

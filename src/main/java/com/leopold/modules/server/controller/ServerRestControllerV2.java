@@ -1,6 +1,9 @@
 package com.leopold.modules.server.controller;
 
 import com.leopold.lib.page.PageDto;
+import com.leopold.modules.file.entity.FileEntity;
+import com.leopold.modules.file.service.FileService;
+import com.leopold.modules.security.websocket.WsAuthorization;
 import com.leopold.modules.server.dto.*;
 import com.leopold.modules.server.dto.mapper.ServerChannelMapper;
 import com.leopold.modules.server.dto.mapper.ServerMapper;
@@ -25,6 +28,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -40,7 +44,7 @@ public class ServerRestControllerV2 {
     private final ServerChannelMapper serverChannelMapper;
     private final ServerChannelService serverChannelService;
     private final ServerUserMapper serverUserMapper;
-
+    private final FileService fileService;
     @Autowired
     public ServerRestControllerV2(
             UserService userService,
@@ -51,7 +55,7 @@ public class ServerRestControllerV2 {
             SimpMessagingTemplate messagingTemplate,
             ServerChannelMapper serverChannelMapper,
             ServerChannelService serverChannelService,
-            ServerUserMapper serverUserMapper) {
+            ServerUserMapper serverUserMapper, FileService fileService) {
         this.userService = userService;
         this.serverService = serverService;
         this.serverUserService = serverUserService;
@@ -61,6 +65,7 @@ public class ServerRestControllerV2 {
         this.serverChannelMapper = serverChannelMapper;
         this.serverChannelService = serverChannelService;
         this.serverUserMapper = serverUserMapper;
+        this.fileService = fileService;
     }
 
     @GetMapping(value="")
@@ -79,7 +84,7 @@ public class ServerRestControllerV2 {
     @Operation(summary = "get page of your server users")
     public ResponseEntity<PageDto<ServerUserProfileDto>> getServerUsers(
             @RequestAttribute("reqUserId") Long userId,
-            @PathVariable Long serverId,
+            @PathVariable String serverId,
             Pageable pageable
     ) {
         UserEntity me = userService.getUserById(userId);
@@ -105,7 +110,7 @@ public class ServerRestControllerV2 {
     @Operation(summary = "add a user to server")
     public ResponseEntity<Void> addUsers(
             @RequestAttribute("reqUserId") Long userId,
-            @PathVariable Long serverId,
+            @PathVariable String serverId,
             AddServerUserDto dto
     ) {
         UserEntity me = userService.getUserById(userId);
@@ -121,7 +126,7 @@ public class ServerRestControllerV2 {
     @Operation(summary = "get a server by id")
     public ResponseEntity<ServerExtendedDto> getServer(
             @RequestAttribute("reqUserId") Long userId,
-            @PathVariable Long serverId
+            @PathVariable String serverId
     ) {
         UserEntity me = userService.getUserById(userId);
         if (!serverService.checkIfServerUser(me, serverId))
@@ -137,7 +142,7 @@ public class ServerRestControllerV2 {
     @Operation(summary = "create a channel")
     public ResponseEntity<ServerChannelDto> createChannel(
             @RequestAttribute("reqUserId") Long userId,
-            @PathVariable Long serverId,
+            @PathVariable String serverId,
             @RequestBody CreateChannelDto dto
             ) {
         UserEntity me = userService.getUserById(userId);
@@ -151,6 +156,28 @@ public class ServerRestControllerV2 {
         return ResponseEntity.ok(res);
     }
 
+    @PutMapping(value= "/{serverId}/picture")
+    @Operation(summary = "upload a multipart file, 200 and FileResponseDto if ok, 400, 500 otherwise")
+    public ResponseEntity<ServerExtendedDto> updateServerPicture(
+            @RequestAttribute("reqUserId") Long userId,
+            @PathVariable String serverId,
+            @RequestPart("file") MultipartFile file
+    ) {
+        UserEntity me = userService.getUserById(userId);
+        if (!serverService.checkIfServerUser(me, serverId))
+            throw new SecurityException("you are not a participant of the server");
+        Optional<ServerEntity> server = serverService.getServerById(serverId);
+        if (server.isEmpty())
+            throw new IllegalArgumentException("there is no server with this id");
+
+        FileEntity fileEntity = fileService.uploadFile(file);
+        serverService.updatePicture(server.get(), fileEntity);
+
+        ServerExtendedDto res = serverMapper.convertExtended(serverService.getServerById(serverId).get());
+        return ResponseEntity.ok(res);
+    }
+
+    @WsAuthorization
     @SubscribeMapping("/queue/conversation/{conversationId}")
     public void subscribeTalk(
             SimpMessageHeaderAccessor accessor,
@@ -161,6 +188,29 @@ public class ServerRestControllerV2 {
         System.out.println("===========================================================");
     }
 
+    @WsAuthorization
+    @SubscribeMapping("/queue/testSubscribe")
+    public void testSubscribe(
+            SimpMessageHeaderAccessor accessor
+    ) {
+        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
+        System.out.println("User: " + myId + " ебал твою мать");
+        System.out.println("===========================================================");
+    }
+
+    @WsAuthorization
+    @MessageMapping("/testSubscribe")
+    public void testSend(
+            SimpMessageHeaderAccessor accessor,
+            String message
+    ) {
+        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
+        System.out.println("User: " + myId + " прислал эту хуйню: " + message);
+
+        messagingTemplate.convertAndSend("/app/queue/testSubscribe", message);
+    }
+
+    @WsAuthorization
     @MessageMapping("/conversation/{conversationId}")
     public void sendSDP(
             SimpMessageHeaderAccessor accessor,
@@ -173,6 +223,7 @@ public class ServerRestControllerV2 {
         messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
     }
 
+    @WsAuthorization
     @SubscribeMapping("/user/{userId}/queue/conversation/blind/queue")
     public void getInBlindTalkQueue(
             SimpMessageHeaderAccessor accessor,

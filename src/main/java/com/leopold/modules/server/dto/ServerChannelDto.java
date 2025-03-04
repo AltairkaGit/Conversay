@@ -3,16 +3,16 @@ package com.leopold.modules.server.dto;
 import com.leopold.modules.server.entity.ServerChannelEntity;
 
 public class ServerChannelDto {
-    long channelId;
+    String channelId;
     String channelName;
     long chatId;
     ServerChannelEntity.ChannelType channelType;
 
-    public long getChannelId() {
+    public String getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(long channelId) {
+    public void setChannelId(String channelId) {
         this.channelId = channelId;
     }
 

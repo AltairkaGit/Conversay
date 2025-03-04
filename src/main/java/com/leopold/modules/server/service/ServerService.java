@@ -14,6 +14,6 @@ import java.util.Optional;
 public interface ServerService {
     ServerEntity createServer(@NotNull UserEntity creator, @NotNull String serverName);
     void updatePicture(ServerEntity server, FileEntity picture);
-    boolean checkIfServerUser(UserEntity user, Long serverId);
-    Optional<ServerEntity> getServerById(Long serverId);
+    boolean checkIfServerUser(UserEntity user, String serverId);
+    Optional<ServerEntity> getServerById(String serverId);
 }

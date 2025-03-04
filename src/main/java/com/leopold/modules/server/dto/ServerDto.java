@@ -1,15 +1,15 @@
 package com.leopold.modules.server.dto;
 
 public class ServerDto {
-    private Long serverId;
+    private String serverId;
     private String servername;
     private String serverPictureUrl;
 
-    public Long getServerId() {
+    public String getServerId() {
         return serverId;
     }
 
-    public void setServerId(Long serverId) {
+    public void setServerId(String serverId) {
         this.serverId = serverId;
     }
 

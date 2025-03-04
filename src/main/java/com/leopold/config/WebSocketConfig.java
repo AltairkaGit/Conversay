@@ -14,15 +14,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Order(3)
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    private final ConnectionInterceptor connectionInterceptor;
-    private final HandShakeHandlerImpl handShakeHandler;
-
-    @Autowired
-    public WebSocketConfig(ConnectionInterceptor connectionInterceptor, HandShakeHandlerImpl handShakeHandler) {
-        this.connectionInterceptor = connectionInterceptor;
-        this.handShakeHandler = handShakeHandler;
-    }
-
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.setApplicationDestinationPrefixes("/app")
@@ -33,14 +24,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry
                 .addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .setHandshakeHandler(handShakeHandler)
-                .addInterceptors(connectionInterceptor);
+                .setAllowedOriginPatterns("*");
         registry
                 .addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
-                .setHandshakeHandler(handShakeHandler)
-                .addInterceptors(connectionInterceptor)
                 .withSockJS();
     }
 }

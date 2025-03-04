@@ -8,7 +8,7 @@ import java.util.Objects;
 
 @Embeddable
 public class ServerUserRoleKey implements Serializable {
-    public static ServerUserRoleKey valueOf(Long serverId, String role, Long userId) {
+    public static ServerUserRoleKey valueOf(String serverId, String role, Long userId) {
         ServerUserRoleKey res = new ServerUserRoleKey();
         res.setServerId(serverId);
         res.setRole(role);
@@ -16,7 +16,7 @@ public class ServerUserRoleKey implements Serializable {
         return res;
     }
     @Column(name = "server_id")
-    private Long serverId;
+    private String serverId;
 
     @Column(name = "role_name")
     private String role;
@@ -24,11 +24,11 @@ public class ServerUserRoleKey implements Serializable {
     @Column(name = "user_id")
     private Long userId;
 
-    public Long getServerId() {
+    public String getServerId() {
         return serverId;
     }
 
-    public void setServerId(Long serverId) {
+    public void setServerId(String serverId) {
         this.serverId = serverId;
     }
 
