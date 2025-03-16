@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 public class ServerChannelServiceImpl implements ServerChannelService {
     private final ServerChannelRepository serverChannelRepository;
@@ -36,5 +38,12 @@ public class ServerChannelServiceImpl implements ServerChannelService {
         serverChannelRepository.saveAndFlush(channel);
 
         return channel;
+    }
+
+    @Override
+    public ServerChannelEntity getChannelById(String channelId) {
+        Optional<ServerChannelEntity> channel = serverChannelRepository.findById(channelId);
+        if (channel.isEmpty()) throw new RuntimeException("no channel with id: " + channelId);
+        return channel.get();
     }
 }

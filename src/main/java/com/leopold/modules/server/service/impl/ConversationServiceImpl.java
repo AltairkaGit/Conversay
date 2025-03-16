@@ -39,8 +39,21 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    public void detachUser(String conversation, String userId) {
+        conversations.compute(conversation, (key, room) -> {
+            if (room != null) {
+                room.remove(userId);
+            }
+            return room;
+        });
+    }
+
+    @Override
     public Set<String> getRoomCopy(String conversation) {
-        return new HashSet<>(conversations.get(conversation));
+        if (conversations.get(conversation) != null) {
+            return new HashSet<>(conversations.get(conversation));
+        }
+        return new HashSet<>();
     }
 
     @Override

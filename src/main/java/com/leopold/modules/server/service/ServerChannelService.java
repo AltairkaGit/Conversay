@@ -5,4 +5,5 @@ import com.leopold.modules.server.entity.ServerEntity;
 
 public interface ServerChannelService {
     ServerChannelEntity createChannel(ServerEntity server, String channelName, ServerChannelEntity.ChannelType channelType);
+    ServerChannelEntity getChannelById(String channelId);
 }

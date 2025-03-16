@@ -3,6 +3,7 @@ package com.leopold.modules.server.controller;
 import com.leopold.lib.page.PageDto;
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.file.service.FileService;
+import com.leopold.modules.security.websocket.ServerAuthorization;
 import com.leopold.modules.security.websocket.WsAuthorization;
 import com.leopold.modules.server.dto.*;
 import com.leopold.modules.server.dto.mapper.ServerChannelMapper;
@@ -30,7 +31,11 @@ import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v2/server")
@@ -135,6 +140,14 @@ public class ServerRestControllerV2 {
         if (server.isEmpty())
             throw new IllegalArgumentException("there is no server with this id");
         ServerExtendedDto res = serverMapper.convertExtended(server.get());
+        for (var channel : res.getChannels()) {
+            String channelId = channel.getChannelId();
+            List<String> users = new ArrayList<>();
+            if (conversationService.getRoomCopy(channelId) != null) {
+                users.addAll(conversationService.getRoomCopy(channelId));
+            }
+            channel.setUsers(users);
+        }
         return ResponseEntity.ok(res);
     }
 
@@ -178,63 +191,70 @@ public class ServerRestControllerV2 {
     }
 
     @WsAuthorization
-    @SubscribeMapping("/queue/conversation/{conversationId}")
-    public void subscribeTalk(
+    @ServerAuthorization
+    @SubscribeMapping("/queue/conversation/{conversationId}/sdp")
+    public void subscribeSdp(
+            SimpMessageHeaderAccessor accessor,
+            @DestinationVariable("conversationId") String conversation
+    ) {}
+
+    @WsAuthorization
+    @ServerAuthorization
+    @MessageMapping("/conversation/{conversationId}/sdp")
+    public void sendSDP(
+            SimpMessageHeaderAccessor accessor,
+            @DestinationVariable("conversationId") String conversation,
+            String sdp
+    ) {
+        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
+        System.out.println("User: " + myId + " sends in  " + conversation + " sdp: " + sdp);
+
+        messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation + "/sdp", sdp);
+    }
+
+    @WsAuthorization
+    @ServerAuthorization
+    @SubscribeMapping("/queue/conversation/{conversationId}/room")
+    public void subscribeRoom(
             SimpMessageHeaderAccessor accessor,
             @DestinationVariable("conversationId") String conversation
     ) {
         String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
-        System.out.println("User: " + myId + " subscribed conversation " + conversation);
-        System.out.println("===========================================================");
     }
 
     @WsAuthorization
-    @SubscribeMapping("/queue/testSubscribe")
-    public void testSubscribe(
-            SimpMessageHeaderAccessor accessor
-    ) {
-        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
-        System.out.println("User: " + myId + " ебал твою мать");
-        System.out.println("===========================================================");
-    }
-
-    @WsAuthorization
-    @MessageMapping("/testSubscribe")
-    public void testSend(
-            SimpMessageHeaderAccessor accessor,
-            String message
-    ) {
-        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
-        System.out.println("User: " + myId + " прислал эту хуйню: " + message);
-
-        messagingTemplate.convertAndSend("/app/queue/testSubscribe", message);
-    }
-
-    @WsAuthorization
-    @MessageMapping("/conversation/{conversationId}")
-    public void sendSDP(
+    @ServerAuthorization
+    @MessageMapping("/conversation/{conversationId}/room")
+    public void sendRoom(
             SimpMessageHeaderAccessor accessor,
             @DestinationVariable("conversationId") String conversation,
-            String sessionDescriptionProtocol
+            String event
     ) {
-        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
-        System.out.println("User: " + myId + " sends in conversation " + conversation + " message: " + sessionDescriptionProtocol);
+        String[] tokens = event.split(":");
+        String room = tokens[0];
+        String action = tokens[1];
+        String userId = tokens[2];
 
-        messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation, sessionDescriptionProtocol);
-    }
-
-    @WsAuthorization
-    @SubscribeMapping("/user/{userId}/queue/conversation/blind/queue")
-    public void getInBlindTalkQueue(
-            SimpMessageHeaderAccessor accessor,
-            @DestinationVariable("userId") String userId
-    ) {
-        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
-        System.out.println("User: " + myId + " attempted to attach queue, userId: " + userId);
-        System.out.println(accessor);
-        if (myId.equals(userId)) {
-            conversationService.attachUserToQueue(myId);
+        if (Objects.equals(action, "join")) {
+            conversationService.attachUser(room, userId);
+        } else if (Objects.equals(action, "leave")) {
+            conversationService.detachUser(room, userId);
         }
+        System.out.println("sendRoom:   " + event);
+        messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation + "/room", event);
     }
 
+//    @WsAuthorization
+//    @SubscribeMapping("/user/{userId}/queue/conversation/blind/queue")
+//    public void getInBlindTalkQueue(
+//            SimpMessageHeaderAccessor accessor,
+//            @DestinationVariable("userId") String userId
+//    ) {
+//        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
+//        System.out.println("User: " + myId + " attempted to attach queue, userId: " + userId);
+//        System.out.println(accessor);
+//        if (myId.equals(userId)) {
+//            conversationService.attachUserToQueue(myId);
+//        }
+//    }
 }
