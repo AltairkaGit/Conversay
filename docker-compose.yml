@@ -6,7 +6,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - /home/kir/postgres/convy/data/db/data/:/var/lib/postgresql/data/
+      - /home/kir/postgres/convy/data/:/var/lib/postgresql/data/
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
