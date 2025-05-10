@@ -3,6 +3,7 @@ package com.leopold.modules.server.controller;
 import com.leopold.lib.page.PageDto;
 import com.leopold.modules.file.entity.FileEntity;
 import com.leopold.modules.file.service.FileService;
+import com.leopold.modules.security.websocket.RoomAuthorization;
 import com.leopold.modules.security.websocket.ServerAuthorization;
 import com.leopold.modules.security.websocket.WsAuthorization;
 import com.leopold.modules.server.dto.*;
@@ -190,8 +191,25 @@ public class ServerRestControllerV2 {
         return ResponseEntity.ok(res);
     }
 
+    @GetMapping(value= "/conversation/current")
+    @Operation(summary = "get current conversation if exist, null otherwise")
+    public ResponseEntity<CurrentConversationDto> getCurrentConversation(
+            @RequestAttribute("reqUserId") Long userId
+    ) {
+        Optional<String> conversation = conversationService.getCurrentConversation(userId.toString());
+        if (conversation.isEmpty()) return ResponseEntity.ok(null);
+
+        return ResponseEntity.ok(
+                new CurrentConversationDto(
+                        conversation.get(),
+                        serverChannelMapper.convert(serverChannelService.getChannelById(conversation.get())),
+                        serverChannelService.getServerIdByChannel(conversation.get()).get()
+                )
+        );
+    }
+
     @WsAuthorization
-    @ServerAuthorization
+    @RoomAuthorization
     @SubscribeMapping("/queue/conversation/{conversationId}/sdp")
     public void subscribeSdp(
             SimpMessageHeaderAccessor accessor,
@@ -199,7 +217,7 @@ public class ServerRestControllerV2 {
     ) {}
 
     @WsAuthorization
-    @ServerAuthorization
+    @RoomAuthorization
     @MessageMapping("/conversation/{conversationId}/sdp")
     public void sendSDP(
             SimpMessageHeaderAccessor accessor,
@@ -218,16 +236,14 @@ public class ServerRestControllerV2 {
     public void subscribeRoom(
             SimpMessageHeaderAccessor accessor,
             @DestinationVariable("conversationId") String conversation
-    ) {
-        String myId = String.valueOf((Long)accessor.getSessionAttributes().get("userId"));
-    }
+    ) {}
 
     @WsAuthorization
-    @ServerAuthorization
+    //@ServerAuthorization
     @MessageMapping("/conversation/{conversationId}/room")
     public void sendRoom(
             SimpMessageHeaderAccessor accessor,
-            @DestinationVariable("conversationId") String conversation,
+            @DestinationVariable("conversationId") String server,
             String event
     ) {
         String[] tokens = event.split(":");
@@ -235,13 +251,13 @@ public class ServerRestControllerV2 {
         String action = tokens[1];
         String userId = tokens[2];
 
+        conversationService.detachUserCurrentConversation(userId, server);
         if (Objects.equals(action, "join")) {
             conversationService.attachUser(room, userId);
-        } else if (Objects.equals(action, "leave")) {
-            conversationService.detachUser(room, userId);
+            messagingTemplate.convertAndSend("/app/queue/conversation/" + server + "/room", room + ":join:" + userId);
+            System.out.println("user joined the room. userId: " + userId + ". room: " + room + ". original event: " + event);
         }
-        System.out.println("sendRoom:   " + event);
-        messagingTemplate.convertAndSend("/app/queue/conversation/" + conversation + "/room", event);
+
     }
 
 //    @WsAuthorization

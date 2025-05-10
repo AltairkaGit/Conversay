@@ -14,7 +14,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class ConversationServiceImpl implements ConversationService {
+    private final ReentrantLock mapsReadingLock = new ReentrantLock();
     private final Map<String, Set<String>> conversations = new ConcurrentHashMap<>();
+    private final Map<String, String> userConversation = new ConcurrentHashMap<>();
     private final Queue<String> queue = new ConcurrentLinkedQueue<>();
     private final ReentrantLock queueReadingLock = new ReentrantLock();
     private final SimpMessagingTemplate messagingTemplate;
@@ -36,6 +38,31 @@ public class ConversationServiceImpl implements ConversationService {
                 return room;
             }
         });
+        userConversation.put(userId, conversation);
+    }
+
+    @Override
+    public void detachUserCurrentConversation(String userId, String server) {
+        Optional<String> conversation = getCurrentConversation(userId);
+
+        if (conversation.isPresent()) {
+            try {
+                detachUser(conversation.get(), userId);
+                userConversation.remove(userId);
+                messagingTemplate.convertAndSend("/app/queue/conversation/" + server + "/room", conversation.get() + ":leave:" + userId);
+                System.out.println("user left the room. userId: " + userId + ". current room: " + conversation.get());
+            } catch (Exception ignore) {}
+        }
+    }
+
+    @Override
+    public Optional<String> getCurrentConversation(String userId) {
+        try {
+            return Optional.of(userConversation.get(userId));
+        } catch (Exception ignore) {
+            return Optional.empty();
+        }
+
     }
 
     @Override

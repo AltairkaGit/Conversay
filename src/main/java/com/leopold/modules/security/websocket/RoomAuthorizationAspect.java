@@ -1,7 +1,9 @@
 package com.leopold.modules.security.websocket;
 
+import com.leopold.modules.server.entity.ServerChannelEntity;
 import com.leopold.modules.server.entity.ServerEntity;
 import com.leopold.modules.server.entity.ServerUserEntity;
+import com.leopold.modules.server.service.ConversationService;
 import com.leopold.modules.server.service.ServerChannelService;
 import com.leopold.modules.server.service.ServerService;
 import com.leopold.modules.server.service.ServerUserService;
@@ -17,32 +19,35 @@ import java.util.Optional;
 
 @Component
 @Aspect
-public class ServerAuthorizationAspect {
+public class RoomAuthorizationAspect {
     private final ServerUserService serverUserService;
-    private final ServerService serverService;
+    private final ServerChannelService serverChannelService;
 
     @Autowired
-    public ServerAuthorizationAspect(ServerUserService serverUserService, ServerService serverService) {
+    public RoomAuthorizationAspect(ServerUserService serverUserService, ServerChannelService serverChannelService) {
         this.serverUserService = serverUserService;
-        this.serverService = serverService;
+        this.serverChannelService = serverChannelService;
     }
 
-    @Around("@annotation(ServerAuthorization)")
+    @Around("@annotation(RoomAuthorization)")
     public Object authorizeSubscription(ProceedingJoinPoint joinPoint) throws Throwable {
-        System.out.println("inited ServerAuthorization");
         Object[] methodArgs = joinPoint.getArgs();
         SimpMessageHeaderAccessor accessor = (SimpMessageHeaderAccessor) methodArgs[0];
         Long myId = (Long)accessor.getSessionAttributes().get("userId");
-        String serverId = (String)methodArgs[1];
-        System.out.println("myId: " + myId);
-        System.out.println("serverId: " + serverId);
-        Optional<ServerEntity> server = serverService.getServerById(serverId);
-        if (server.isEmpty()) throw new AuthenticationException("No fucking server with id: " + serverId);
+        String conversation = (String)methodArgs[1];
 
-        Optional<ServerUserEntity> serverUser = serverUserService.getServerUser(server.get().getServerId(), myId);
+        ServerChannelEntity serverChannelEntity = null;
+        try {
+            serverChannelEntity = serverChannelService.getChannelById(conversation);
+        } catch (Exception ignore) {}
+
+        if (serverChannelEntity == null)  throw new AuthenticationException("No channel with this room id found, " + conversation);
+
+        String serverId = serverChannelEntity.getServer().getServerId();
+        Optional<ServerUserEntity> serverUser = serverUserService.getServerUser(serverId, myId);
 
         if (serverUser.isEmpty()) throw new AuthenticationException("User " + myId + " is not a participant of server: " + serverId);
-        System.out.println("finished ServerAuthorization");
+
         return joinPoint.proceed();
     }
 }

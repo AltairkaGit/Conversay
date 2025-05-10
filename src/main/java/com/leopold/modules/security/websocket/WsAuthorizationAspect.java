@@ -26,15 +26,20 @@ public class WsAuthorizationAspect {
         SimpMessageHeaderAccessor accessor = (SimpMessageHeaderAccessor) methodArgs[0];
 
         try {
+            System.out.println(accessor.getMessageHeaders());
             String access = accessor.getNativeHeader("Authorization").get(0);
+            System.out.println("access: " + access);
             if (!jwtTokenProvider.validateAccess(access))
-                throw new AuthenticationException("access token is not ok");
-
+                throw new AuthenticationException("access token is not valid");
+            System.out.println("пися попа 1");
             var requestAttributes = accessor.getSessionAttributes();
+            System.out.println("пися попа 2, " + requestAttributes);
             if (requestAttributes != null) requestAttributes.put("userId", jwtTokenProvider.getUserId(access));
+            System.out.println("пися попа 3, " + requestAttributes);
             accessor.setSessionAttributes(requestAttributes);
+            System.out.println("пися попа 4, " + accessor.getSessionAttributes());
         } catch (RuntimeException e) {
-            throw new AuthenticationException("access token is not ok");
+            throw new AuthenticationException("access token retrieving failure");
         }
 
         return joinPoint.proceed();

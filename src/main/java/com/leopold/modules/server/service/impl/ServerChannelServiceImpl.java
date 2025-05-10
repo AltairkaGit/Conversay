@@ -46,4 +46,9 @@ public class ServerChannelServiceImpl implements ServerChannelService {
         if (channel.isEmpty()) throw new RuntimeException("no channel with id: " + channelId);
         return channel.get();
     }
+
+    @Override
+    public Optional<String> getServerIdByChannel(String channelId) {
+        return serverChannelRepository.findServerIdByChannelId(channelId);
+    }
 }
