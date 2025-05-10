@@ -20,13 +20,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8080:8080"
     depends_on:
       - db
     networks:
       - netgt
     expose:
-      - 80
+      - 8080
     volumes:
       - /home/kir/convy/:/app/
 networks:
