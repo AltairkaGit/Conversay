@@ -27,6 +27,8 @@ public class FileServiceImpl implements FileService {
     private String uploadPath;
     @Value("${upload.workdir}")
     private String uploadWorkdir;
+    @Value("${proto}")
+    private String proto;
     private static final Long MAX_FILE_SIZE_BYTES = 1024 * 1024 * 35L;
     private static final String DEFAULT_FILE_NAME = "file_";
     private final FileRepository fileRepository;
@@ -109,7 +111,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String composeUrl(String filename) {
-        StringBuilder sb = new StringBuilder("http://");
+        StringBuilder sb = new StringBuilder(proto + "://");
         if (hostname.startsWith("/")) sb.append(hostname.substring(1));
         else sb.append(hostname);
         if (!uploadPath.startsWith("/")) sb.append("/");
