@@ -169,7 +169,7 @@ public class ServerRestControllerV2 {
         ServerChannelDto res = serverChannelMapper.convert(channel);
         return ResponseEntity.ok(res);
     }
-
+    //полетели
     @PutMapping(value= "/{serverId}/picture")
     @Operation(summary = "upload a multipart file, 200 and FileResponseDto if ok, 400, 500 otherwise")
     public ResponseEntity<ServerExtendedDto> updateServerPicture(
