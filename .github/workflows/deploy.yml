@@ -14,10 +14,10 @@ jobs:
       - name: Stop and remove containers, networks
         run: cat /home/kir/secret | sudo -S docker-compose --env-file /home/kir/convy/env.properties down
       - name: clean unused docker data
-        run: cat /home/kir/secret | sudo -S docker rmi conversay-server --force
+        run: cat /home/kir/secret | sudo -S docker rmi conversay_server_1 --force
   deploy:
     runs-on: self-hosted
     needs: prepare-environment
     steps:
       - name: docker-compose
-        run: cat /home/kir/secret | sudo -S docker-compose --env-file /home/kir/convy/env.properties up -d
+        run: cat /home/kir/secret | sudo -S docker-compose --env-file /home/kir/convy/env.properties up -d --build
