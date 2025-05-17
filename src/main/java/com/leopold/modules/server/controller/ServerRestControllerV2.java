@@ -256,6 +256,9 @@ public class ServerRestControllerV2 {
             conversationService.attachUser(room, userId);
             messagingTemplate.convertAndSend("/app/queue/conversation/" + server + "/room", room + ":join:" + userId);
             System.out.println("user joined the room. userId: " + userId + ". room: " + room + ". original event: " + event);
+        } else if (Objects.equals(action, "leave")) {
+            messagingTemplate.convertAndSend("/app/queue/conversation/" + server + "/room", room + ":leave:" + userId);
+            System.out.println("AHAHAHAH user left the room. userId: " + userId + ". room: " + room + ". original event: " + event);
         }
 
     }
